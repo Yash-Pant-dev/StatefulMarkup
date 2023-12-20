@@ -1,0 +1,39 @@
+<html>
+
+<head>
+    <title>
+        Demo StatefulMarkup
+    </title>
+</head>
+
+<script src="../StatefulMarkupClient.js"></script>
+<script src="example.js"></script>
+<script defer src="../StatefulMarkup.js"></script>
+
+
+
+<!-- This is an example page with two divs functioning as markupUI components -->
+
+<body>
+    <div>
+        Some Text Here
+    </div>
+    <div class="_sm">
+        <!-- Any div with a class name _sm will hand over its functionality to
+        the the framework!  -->
+        My name is: @name
+    </div>
+    <div class="_sm">
+        I am a
+        @_if(@gender == "male")
+        {
+        <div>Male!</div>
+        }
+        @_if(@gender == "female")
+        {
+        <div>!Male!</div>
+        }
+    </div>
+</body>
+
+</html>
