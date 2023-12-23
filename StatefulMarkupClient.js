@@ -19,13 +19,32 @@ class StatefulMarkupClient {
             event: newEvent
         }]
 
-        console.log(StatefulMarkupClient.#eventsBuffer)
+        // console.log(StatefulMarkupClient.#eventsBuffer)
     }
 
     static get events() {
         return this.#eventsBuffer
     }
 
+    bindEventListener(...funcs) {
+        StatefulMarkupClient.#eventListeners = [...StatefulMarkupClient.#eventListeners,
+            ...funcs
+        ]
+    }
+
+    static get eventListeners() {
+        return this.#eventListeners
+    }
+
+    static #eventListeners = []
     static #eventsBuffer = []
     static #id = 1
 }
+
+class StatefulMarkupConfig {
+    static DEBUG_MODE = false // If true, each of the following are toggled from their natural values.
+
+    static REFRESH_SUBS_ALWAYS = false // Refresh subs after every update.
+    static DEBUG_LOGS = false // Verbose logging.
+    static BATCH_RENDERER = true // If false, updates are not batched for performance.
+} 

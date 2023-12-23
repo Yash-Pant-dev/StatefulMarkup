@@ -10,6 +10,8 @@
 <script src="example.js"></script>
 <script defer src="../StatefulMarkup.js"></script>
 
+<link rel="stylesheet" href="example.css">
+
 
 
 <!-- This is an example page with two divs functioning as markupUI components -->
@@ -18,7 +20,7 @@
     <div>
         Some Text Here
     </div>
-    <div class="_sm">
+    <div class="@color _sm" _SM_color>
         <!-- Any div with a class name _sm will hand over its functionality to
         the the framework!  -->
         My name is: @name
