@@ -3,19 +3,15 @@
     By Yash Pant
 */
 
-// _SM_Engine loop.
 (function () {
     addEventListener("load", (e) => {
         _SM_Engine.update()
-        // setTimeout(() => {
-        //     _SM_Engine.update(false)
-        // }, 1500)
     })
 })()
 
 
 /* 
-    Manager acts as the source of truth of all pubs and subs.
+    The Manager handles communicating done by the PubSub model.
 */
 class _SM_Manager {
 
@@ -23,12 +19,27 @@ class _SM_Manager {
         return this.#events = StatefulMarkupClient.events
     }
 
+    /* 
+        This method is useful to clear the eventsBuffer from already processed events.
+    */
+    static set events(newEventsBuffer) {
+        StatefulMarkupClient.eventsBuffer = newEventsBuffer
+    }
+
     static get subs() {
         return this.#subs
     }
 
+    /* 
+        Finds the DOM elements subscribing to state updates from the framework (marked by
+        containing an _sm class).
+        Also used when external JS scripts are modifying the classNames of DOM elements
+        to add or remove the _sm value.
+        Must be called if the framework ever loses track of subscribed DOM element
+        so that it can re-subscribe.
+    */
     static refreshSubs() {
-        const SM_CLASSNAME = "_sm" // Identifies the divs that use StatefulMarkup
+        const SM_CLASSNAME = "_sm"
         return this.#subs = Array.from(document.getElementsByClassName(SM_CLASSNAME))
     }
 
@@ -38,7 +49,11 @@ class _SM_Manager {
 
 class _SM_Transforms {
 
-    // Likely need to refresh subs before creating transforms anew?
+    /* 
+        Create a link between the original DOM elements and the currently displayed
+        stateful mirrors, and the shards which are under construction mirrors for the next render.
+        Called on every refreshSubs event from the user, hence typically not needed to call explicitly.
+    */
     static createTransforms() {
         this.#transforms = []
 
@@ -47,7 +62,7 @@ class _SM_Transforms {
             const transformation = { element, mirror, shard: null } // Shard: Null means no updates!
             element.replaceWith(mirror)
 
-            this.#transforms = [...this.#transforms, transformation]
+            this.#transforms.push(transformation)
         })
     }
 
@@ -55,8 +70,13 @@ class _SM_Transforms {
         return this.#transforms
     }
 
-    // A replaceClone may be required
+    /* 
+        Makes the final DOM update to replace the mirrors with shards.
+        Only mirrors that were changed have been replaced, hence there are no
+        unnecessary replacements.
+    */
     static update() {
+
         this.#transforms.forEach(tfmn => {
             if (tfmn.shard) {
                 tfmn.mirror.replaceWith(tfmn.shard)
@@ -65,22 +85,24 @@ class _SM_Transforms {
             tfmn.shard = null
         })
 
-        console.log("Update Transform")
-
+        _SM_Log.log(1, "%c  Transforms update")
     }
 
     static #transforms = []
 }
-// One flow can be updation of transforms through value injection, html injection and event binding
-// and finally getting updated through the update fn here.
+
 
 /* 
     ValueInjector works to replace all the vars present in the HTML with 
-    the values provided to the SMClient. 
+    the values published through the SMClient. 
 */
 class _SM_ValueInjector {
 
     static update() {
+
+        const updateRequired = this._variableUpdate()
+        if (!updateRequired)
+            return
 
         _SM_Transforms.transforms.forEach((tfmn) => {
             let element = tfmn.element
@@ -101,58 +123,50 @@ class _SM_ValueInjector {
 
                 shard.setAttribute(shardAttributeName, shardAttributeValue)
             }
+
             // Inject values in innerHTML
             let shardContent = this._replacer(element.innerHTML)
             shard.innerHTML = shardContent
             tfmn.shard = shard
         })
 
-        console.log("Update VI")
+        _SM_Log.log(1, "%c  Value Injector update")
     }
 
-    // TODO: Remove previously processed events.
-    // static _variableUpdate() {
-    //     _SM_Manager.events.forEach((e) => {
-    //         this.#varMap.set(e.event.var, e.event.val)
-    //     })
-    // }
+    static _variableUpdate() {
+        let unprocessedEvents = []
+        let wereVariablesUpdated = false
 
-    static set variableMap(args) {
-        let variable = args.var
-        let value = args.val
+        _SM_Manager.events.forEach(event => {
+            if (event.type != "varUpdate") {
+                unprocessedEvents.push(event)
+            }
+            else {
+                if (this.#varMap.get(event.var) != event.val) {
+                    wereVariablesUpdated = true
+                    this.#varMap.set(event.var, event.val)
+                }
+            }
+        })
 
-        if (!(this.#varMap.has(variable) && this.#varMap.get(variable) == value)) {
-            this.#varMap.set(variable, value)
-        }
-
-        _SM_Engine.updateNeeded = true
-        _SM_Engine.update()
+        _SM_Manager.events = unprocessedEvents
+        return wereVariablesUpdated
     }
 
     static _replacer(input) {
         let output = input
+
         this.#varMap.forEach((v, k, m) => {
             const varRegex = new RegExp("@" + k, "g")
             output = output.replace(varRegex, v)
         })
+
         return output
     }
 
     static #varMap = new Map()
 }
 
-// class _SM_Conditionals {
-
-//     static update() {
-
-
-//     }
-
-//     _ifFinder(inputText) {
-//         for (x in inputText)
-//     }
-// }
-// TODO: rename elements, mirror, shard
 class _SM_EventBinder {
 
     static get listeners() {
@@ -177,10 +191,10 @@ class _SM_EventBinder {
                 )))
         })
 
-        console.log("Update EL")
+        _SM_Log.log(1, "%c  EventBinder update")
     }
 
-    // Typically you should not need to use this if code has been correctly structured.
+    // Should be used in exceptional cases only.
     _rare_removeEventListenerBinding(listenerId) {
         return StatefulMarkupClient.eventListeners =
             StatefulMarkupClient.eventListeners.filter(el => {
@@ -191,42 +205,63 @@ class _SM_EventBinder {
     static #shardDocument
 }
 
+class _SM_ExternalJS {
+    
+    static get statelessUpdates() {
+        return StatefulMarkupClient.statelessExternals
+    }
+
+    static get statefulUpdates() {
+        return StatefulMarkupClient.statefulExternals
+    }
+
+    // Is it safe to clear stateless updates after processing them once?
+    static performStatelessUpdates() {
+
+        let elementDocument = document.createElement("elementCollection")
+        _SM_Transforms.transforms.forEach(tfmn => {
+            elementDocument.append(tfmn.element)
+        })
+
+        this.statelessUpdates.forEach(update => {
+            let externallyAffected = elementDocument.querySelectorAll(update.selector)
+            
+        })
+
+        StatefulMarkupClient.statelessExternals = []
+    }
+}
+
 class _SM_Engine {
 
-    static update(forceUpdate = false) {
+    static update(firstTime = true, forceUpdate = false) {
 
-        if (this.#firstTime || forceUpdate) {
+        if (firstTime || forceUpdate) {
             _SM_Manager.refreshSubs()
             _SM_Transforms.createTransforms()
-            this.#firstTime = false
+            firstTime = false
         }
+
         _SM_ValueInjector.update()
         _SM_EventBinder.update()
 
-        // if(this.updateNeeded) {
         _SM_Transforms.update()
-        this.updateNeeded = false
-        // }
-        // setTimeout(() => {
-        //     this.update(false)
-        // }, NaN)
     }
-
-    static test() {
-        _SM_Transforms.createTransforms()
-        _SM_ValueInjector.update()
-        setTimeout(() => {
-            _SM_ValueInjector.update()
-            // _SM_EventBinder.update()
-        }, 500)
-    }
-
-    static updateNeeded = false
-    static #firstTime = true
 }
 
+class _SM_Log {
 
+    static colorSev1 = 'color: yellow'
+    static colorSev2 = 'color: red'
 
-// Before refresh subs, all vars must be updated with value = @varName / Cloned will be replaced with orig
-// Coalesce all the updates on the same var to the last val -> map
-// When an update is queued, wait for 16 ms and then perform updates?
+    static log(severity, message) {
+        if (severity == 1) {
+            if (StatefulMarkupConfig.DEBUG_LOGS || StatefulMarkupConfig.DEBUG_MODE) {
+                console.log(message, this.colorSev1)
+            }
+        }
+        else {
+            console.log(message, this.colorSev2)
+        }
+    }
+}

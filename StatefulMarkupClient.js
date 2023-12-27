@@ -10,53 +10,99 @@
 class StatefulMarkupClient {
 
     constructor(...args) {
-        console.log("StatefulMarkup Client initialized -", args)
-    }
-
-    /*  Kept non static to make it accessible from an object. */
-    publish(newEvent) {
-
-        StatefulMarkupClient.#eventsBuffer = [...StatefulMarkupClient.#eventsBuffer,
-        {
-            id: StatefulMarkupClient.#eventId++,
-            event: newEvent
-        }]
-    }
-
-    static get events() {
-        return this.#eventsBuffer
+        console.log("StatefulMarkup Client initialized -", ...args)
     }
 
     /*  
-        The listeners must be collected in this format so that they be 
-        relooped through for each element that updates in a render.
+        Kept non static to make it accessible from an object. 
+        We keep a publisher type method to make it extendable for future event types
+        apart from the var updates, such as refreshSubs.
+    */
+    publish(newEvent) {
+
+        StatefulMarkupClient.#eventsBuffer.push(
+            {
+                id: StatefulMarkupClient.#eventId++,
+                event: newEvent
+            })
+    }
+
+    /*  
+        addListener collects all the data required for it to efficiently bind to just the 
+        updated shards. If we instead used a format like 
+        (domCollection(using document.getElementById),onEvent etc) 
+        then it would update the mirrors instead of the (yet unadded to the DOM) shards. 
     */
     addListener(selector, onEvent, callback, optionalArgs) {
-        return StatefulMarkupClient.#eventListeners = [...StatefulMarkupClient.#eventListeners,
-        {
-            id: StatefulMarkupClient.#listenerId++,
-            selector,
-            onEvent,
-            callback,
-            optionalArgs
-        }
-        ]
+        return StatefulMarkupClient.#eventListeners.push(
+            {
+                id: StatefulMarkupClient.#listenerId++,
+                selector,
+                onEvent,
+                callback,
+                optionalArgs
+            })
+    }
+
+    /* 
+        Allows for manipulation of DOM elements through JS.
+
+        If the modification does not depend on any @vars / @_ifs, use the stateless update
+        which is more efficient.
+        If it depends on @vars/@_if evaluation or if you aren't sure, use stateful updates.
+    */
+    addExternalManipulation(selector, modifier, stateful = true) {
+        if (stateful)
+            StatefulMarkupClient.#statefulExternals.push(
+                {
+                    id: StatefulMarkupClient.#externalId++,
+                    selector,
+                    modifier,
+                })
+        if (!stateful)
+            StatefulMarkupClient.#statelessExternals.push(
+                {
+                    id: StatefulMarkupClient.#externalId++,
+                    selector,
+                    modifier,
+                })
+
+    }
+
+    static set eventsBuffer(newEventsBuffer) {
+        this.#eventsBuffer = newEventsBuffer
     }
 
     static get eventListeners() {
         return this.#eventListeners
     }
 
-    static #eventListeners = []
+    static get statefulExternals() {
+        return this.#statefulExternals
+    }
+    static get statelessExternals() {
+        return this.#statelessExternals
+    }
+    static set statelessExternals(newStatelessExternals) {
+        this.#statelessExternals = newStatelessExternals
+    }
+
     static #eventsBuffer = []
     static #eventId = 1
+
+    static #eventListeners = []
     static #listenerId = 1
+
+    static #statefulExternals = []
+    static #statelessExternals = []
+    static #externalId = 1
 }
 
 class StatefulMarkupConfig {
-    static DEBUG_MODE = false // If true, each of the following are toggled from their natural values.
+    /*  If true, each of the following are toggled from their default values. */
+    static DEBUG_MODE = true
 
     static REFRESH_SUBS_ALWAYS = false // Refresh subs after every update.
     static DEBUG_LOGS = false // Verbose logging.
-    static BATCH_RENDERER = true // If false, updates are not batched for performance.
+    static DISABLE_BATCH_RENDERER = false // If false, updates are not batched for performance.
 }

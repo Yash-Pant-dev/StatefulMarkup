@@ -1,26 +1,26 @@
 const StatefulMarkup = new StatefulMarkupClient("Example.js")
+StatefulMarkupConfig.DEBUG_MODE = true
+
 
 function fetchName() {
     setTimeout(() => {
-        StatefulMarkup.publish({ var: "name", val: "Yash" })
+        StatefulMarkup.publish({ type: "varUpdate", var: "name", val: "Yash" })
     }, 0)
     setTimeout(() => {
-        StatefulMarkup.publish({ var: "gender", val: "male" })
+        StatefulMarkup.publish({ type: "varUpdate", var: "gender", val: "male" })
     }, 0)
 }
 
 function changeColor() {
     setTimeout(() => {
-        StatefulMarkup.publish({ var: "color", val: "blueCSS" })
+        StatefulMarkup.publish({ type: "varUpdate", var: "color", val: "blueCSS" })
     }, 0)
     setTimeout(() => {
-
         eventListenerSetup()
-
     }, 500)
 
     setTimeout(() => {
-        StatefulMarkup.publish({ var: "color", val: "redCSS" })
+        StatefulMarkup.publish({ type: "varUpdate", var: "color", val: "redCSS" })
     }, 1400)
 }
 
