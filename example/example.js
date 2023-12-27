@@ -21,7 +21,7 @@ function changeColor() {
 
     setTimeout(() => {
         StatefulMarkup.publish({ var: "color", val: "redCSS" })
-    }, 2000)
+    }, 1400)
 }
 
 fetchName()
@@ -35,5 +35,21 @@ function eventListenerSetup() {
         })
     })
 }
+// console.log(typeof getElementsByClassName("asd"))
+function demo() {
+    console.log("clickable")
+}
 
-StatefulMarkup.bindEventListener(eventListenerSetup)
+// StatefulMarkup.bindEventListeners(eventListenerSetup)
+// StatefulMarkup._unsafe_bindEventListeners()
+// function f() {
+//     addEventListener
+// }
+
+// setTimeout(() => {document.getElementById("redCSS").addEventListener("click", () => {
+//     console.log("el")
+// })}, 2000)
+StatefulMarkup.addListener("#redCSS",
+    "click",
+    () => { console.log("el") },
+    {})
