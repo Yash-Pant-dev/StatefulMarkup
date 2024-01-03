@@ -1,3 +1,7 @@
+/* 
+    Author - Yash Pant.
+    V - 0.1
+*/
 /* INFO: Must be first script loaded. */
 
 /* 
@@ -6,11 +10,11 @@
 
     The main purpose of the Client is to provide a minimal client to be loaded first,
     and collect all events & listeners for the SM.js file to handle later.
-    */
+*/
 class StatefulMarkupClient {
 
     constructor(...args) {
-        console.log("StatefulMarkup Client initialized -", ...args)
+        console.log("StatefulMarkup Client initialized -v0.1", ...args)
     }
 
     /*  
@@ -19,12 +23,13 @@ class StatefulMarkupClient {
         apart from the var updates, such as refreshSubs.
     */
     publish(newEvent) {
-
         StatefulMarkupClient.#eventsBuffer.push(
             {
                 id: StatefulMarkupClient.#eventId++,
                 event: newEvent
             })
+
+        _informEngine('Pub')
     }
 
     /*  
@@ -34,7 +39,7 @@ class StatefulMarkupClient {
         then it would update the mirrors instead of the (yet unadded to the DOM) shards. 
     */
     addListener(selector, onEvent, callback, optionalArgs) {
-        return StatefulMarkupClient.#eventListeners.push(
+        StatefulMarkupClient.#eventListeners.push(
             {
                 id: StatefulMarkupClient.#listenerId++,
                 selector,
@@ -42,31 +47,30 @@ class StatefulMarkupClient {
                 callback,
                 optionalArgs
             })
+
+        _informEngine('EvBind')
     }
 
     /* 
         Allows for manipulation of DOM elements through JS.
-
-        If the modification does not depend on any @vars / @_ifs, use the stateless update
-        which is more efficient.
-        If it depends on @vars/@_if evaluation or if you aren't sure, use stateful updates.
+        The modification should not depend on any values injected by @vars, ie only stateless updates
+        must be performed.
     */
-    addExternalManipulation(selector, modifier, stateful = true) {
-        if (stateful)
-            StatefulMarkupClient.#statefulExternals.push(
-                {
-                    id: StatefulMarkupClient.#externalId++,
-                    selector,
-                    modifier,
-                })
-        if (!stateful)
-            StatefulMarkupClient.#statelessExternals.push(
-                {
-                    id: StatefulMarkupClient.#externalId++,
-                    selector,
-                    modifier,
-                })
+    addExternalManipulation(selector, modifier) {
+        StatefulMarkupClient.#statelessUpdates.push(
+            {
+                id: StatefulMarkupClient.#updateId++,
+                selector,
+                modifier,
+            })
 
+        _informEngine('Sless')
+    }
+
+    static _informEngine(operation) {
+        if (typeof _SM_Engine === typeof Function) {
+            _SM_Engine.inform(operation)
+        }
     }
 
     static set eventsBuffer(newEventsBuffer) {
@@ -77,14 +81,8 @@ class StatefulMarkupClient {
         return this.#eventListeners
     }
 
-    static get statefulExternals() {
-        return this.#statefulExternals
-    }
-    static get statelessExternals() {
-        return this.#statelessExternals
-    }
-    static set statelessExternals(newStatelessExternals) {
-        this.#statelessExternals = newStatelessExternals
+    static get statelessUpdates() {
+        return this.#statelessUpdates
     }
 
     static #eventsBuffer = []
@@ -93,9 +91,8 @@ class StatefulMarkupClient {
     static #eventListeners = []
     static #listenerId = 1
 
-    static #statefulExternals = []
-    static #statelessExternals = []
-    static #externalId = 1
+    static #statelessUpdates = []
+    static #updateId = 1
 }
 
 class StatefulMarkupConfig {
@@ -105,4 +102,5 @@ class StatefulMarkupConfig {
     static REFRESH_SUBS_ALWAYS = false // Refresh subs after every update.
     static DEBUG_LOGS = false // Verbose logging.
     static DISABLE_BATCH_RENDERER = false // If false, updates are not batched for performance.
+    // TODO: Is toggled off for now.
 }

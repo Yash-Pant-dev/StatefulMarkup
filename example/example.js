@@ -53,3 +53,9 @@ StatefulMarkup.addListener("#redCSS",
     "click",
     () => { console.log("el") },
     {})
+
+// External Manipulation 
+// Example : Editing the dom.
+StatefulMarkup.addExternalManipulation(".intro", function (element) {
+    element.innerHTML = "Updated DOM using external manipulation. My name is @name."
+})
