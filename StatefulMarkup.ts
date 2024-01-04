@@ -7,7 +7,7 @@ const _SM_Version = 0.1;
 
 (function () {
     addEventListener("load", (e) => {
-        _SM_Engine.update()
+        _SM_Engine.renderer()
     })
 })()
 
@@ -18,7 +18,7 @@ const _SM_Version = 0.1;
 class _SM_Manager {
 
     static get events() {
-        return this.#events = StatefulMarkupClient.events
+        return StatefulMarkupClient.eventsBuffer
     }
 
     /* 
@@ -29,7 +29,8 @@ class _SM_Manager {
     }
 
     static get subs() {
-        return this.#subs
+        console.log(this._subs)
+        return this._subs
     }
 
     /* 
@@ -42,11 +43,10 @@ class _SM_Manager {
     */
     static refreshSubs() {
         const SM_CLASSNAME = "_sm"
-        return this.#subs = Array.from(document.getElementsByClassName(SM_CLASSNAME))
+        return this._subs = Array.from(document.getElementsByClassName(SM_CLASSNAME))
     }
 
-    static #events = []
-    static #subs = []
+    private static _subs: Array<SMSubscriber> = []
 }
 
 class _SM_Transforms {
@@ -56,37 +56,37 @@ class _SM_Transforms {
         stateful mirrors, and the shards which are under construction mirrors for the next render.
         Called on every refreshSubs event from the user, hence typically not needed to call explicitly.
     */
-    static createTransforms(subscribers) {
+    static createTransforms(subscribers: Array<SMSubscriber>) {
 
-        const newTransforms = []
+        const newTransforms: Array<SMTransform> = []
 
         subscribers.forEach(element => {
-            const mirror = element.cloneNode(true)
+            const mirror = element.cloneNode(true) as Element
             const transformation = { element, mirror, shard: null } // A null shard has no updates.
             element.replaceWith(mirror)
 
-            this.#transforms.push(transformation)
+            this._transforms.push(transformation)
             newTransforms.push(transformation)
         })
 
         return newTransforms
     }
 
-    static shardCurrentMirror(transforms) {
+    static shardCurrentMirror(transforms: Array<SMTransform>) {
 
         transforms.forEach(tfmn => {
-            tfmn.shard = tfmn.mirror.cloneNode(true)
+            tfmn.shard = tfmn.mirror.cloneNode(true) as Element
         })
 
         return transforms
     }
 
     static get transforms() {
-        return this.#transforms
+        return this._transforms
     }
 
     static resetTransforms() {
-        this.#transforms = []
+        this._transforms = []
     }
 
     /* 
@@ -94,7 +94,7 @@ class _SM_Transforms {
         Only mirrors that were changed have been replaced, hence there are no
         unnecessary replacements.
     */
-    static update(transforms) {
+    static update(transforms: Array<SMTransform>) {
 
         transforms.forEach(tfmn => {
             if (tfmn.shard) {
@@ -107,40 +107,40 @@ class _SM_Transforms {
         _SM_Log.log(1, "%c  Transforms update")
     }
 
-    static #transforms = []
+    private static _transforms: Array<SMTransform> = []
 }
 
 
 /* 
     ValueInjector works to replace all the vars present in the HTML with 
-    the values published through the SMClient. 
+    the values published through the SM Client. 
 */
 class _SM_ValueInjector {
 
     // Force update is necessary if a new transform / subscriber is created.
-    static update(transforms, forceUpdate = false) {
+    static update(transforms: Array<SMTransform>, forceUpdate = false) {
 
         const isMappingUpdated = this._mappingUpdater()
-        const newTransforms = []
+        const newTransforms: Array<SMTransform> = []
         if (!forceUpdate && !isMappingUpdated)
             return newTransforms;
 
 
         transforms.forEach((tfmn) => {
             const element = tfmn.element
-            const shard = element.cloneNode(true)
+            const shard = element.cloneNode(true) as Element
 
             const mirror = tfmn.mirror
 
             // Inject values in attributes
             for (let elementAttributeName of element.getAttributeNames()) {
                 let shardAttributeName = elementAttributeName
-                let shardAttributeValue = element.getAttribute(elementAttributeName)
+                let shardAttributeValue = element.getAttribute(elementAttributeName) as string
 
                 if (elementAttributeName.startsWith("_sm_")) {
                     let possibleVariable = elementAttributeName.replace("_sm_", "")
-                    if (this.#varMap.has(possibleVariable)) {
-                        shardAttributeName = this.#varMap.get(possibleVariable)
+                    if (this._varMap.has(possibleVariable)) {
+                        shardAttributeName = this._varMap.get(possibleVariable)
                     }
                 }
                 shardAttributeValue = this._replacer(shardAttributeValue)
@@ -164,19 +164,19 @@ class _SM_ValueInjector {
         return newTransforms
     }
 
-    static _mappingUpdater() {
-        let unprocessedEvents = []
+    private static _mappingUpdater() {
+        const unprocessedEvents: Array<SMEvent> = []
         let isMappingUpdated = false
 
-        _SM_Manager.events.forEach(event => {
-            if (event.type != "varUpdate") {
-                unprocessedEvents.push(event)
+        _SM_Manager.events.forEach(publishedEvent => {
+            if (publishedEvent.event.type === undefined || publishedEvent.event.type === "varUpdate") {
+                if (this._varMap.get(publishedEvent.event.var) != publishedEvent.event.val) {
+                    isMappingUpdated = true
+                    this._varMap.set(publishedEvent.event.var, publishedEvent.event.val)
+                }
             }
             else {
-                if (this.#varMap.get(event.var) != event.val) {
-                    isMappingUpdated = true
-                    this.#varMap.set(event.var, event.val)
-                }
+                unprocessedEvents.push(publishedEvent)
             }
         })
 
@@ -184,10 +184,10 @@ class _SM_ValueInjector {
         return isMappingUpdated
     }
 
-    static _replacer(input) {
+    private static _replacer(input: string) {
         let output = input
 
-        this.#varMap.forEach((v, k, m) => {
+        this._varMap.forEach((v, k, m) => {
             const varRegex = new RegExp("@" + k, "g")
             output = output.replace(varRegex, v)
         })
@@ -196,20 +196,20 @@ class _SM_ValueInjector {
     }
 
     static __clearMap() {
-        this.#varMap.clear()
+        this._varMap.clear()
     }
 
-    static #varMap = new Map()
+    private static _varMap = new Map()
 }
 
 class _SM_EventBinder {
 
-    static get listeners() {
+    private static get listeners() {
         return StatefulMarkupClient.eventListeners
     }
 
-    static update(transforms) {
-        const shardList = document.createElement("Event Binding Group")
+    static update(transforms: Array<SMTransform>) {
+        const shardList = document.createElement("EventBindingGroup")
 
         transforms.forEach(tfmn => {
             if (tfmn.shard) {
@@ -222,15 +222,16 @@ class _SM_EventBinder {
                 forEach(DOMElement => (DOMElement.addEventListener(
                     listener.onEvent,
                     listener.callback,
-                    listener.optArgs
+                    listener.optionalArgs
                 )))
         })
 
         _SM_Log.log(1, "%c  EventBinder update")
+        return transforms
     }
 
     // Should be used in exceptional cases only.
-    __removeEventListenerBinding(listenerId) {
+    __removeEventListenerBinding(listenerId: Id) {
         return StatefulMarkupClient.eventListeners =
             StatefulMarkupClient.eventListeners.filter(el => {
                 el.id != listenerId
@@ -244,17 +245,18 @@ class _SM_EventBinder {
 
 class _SM_ExternalJS {
 
-    static get statelessUpdates() {
+    private static get statelessUpdates() {
         return StatefulMarkupClient.statelessUpdates
     }
 
     /* 
         Performs updates on the original DOM elements.
     */
-    static update(transforms) {
+    static update(transforms: Array<SMTransform>) {
+        const newTransforms: Array<SMTransform> = []
 
         transforms.forEach(tfmn => {
-            const elementDocument = document.createElement("External Manipulation Group")
+            const elementDocument = document.createElement("ExternalManipulationGroup")
             elementDocument.append(tfmn.element)
 
             let wasUpdated = false
@@ -266,9 +268,13 @@ class _SM_ExternalJS {
                 })
             })
 
-            if (wasUpdated)
-                tfmn.shard = tfmn.element.cloneNode(true)
+            if (wasUpdated) {
+                tfmn.shard = tfmn.element.cloneNode(true) as Element
+                newTransforms.push(tfmn)
+            }
         })
+
+        return newTransforms
     }
 }
 
@@ -297,32 +303,16 @@ class _SM_ExternalJS {
 
 class _SM_Engine {
 
-    // static update() {
-
-    //     if (this.rendererIntrinsics.firstRender) {
-    //         const temp = _SM_Manager.refreshSubs()
-    //         _SM_Transforms.createTransforms(temp)
-    //         this.rendererIntrinsics.firstRender = false
-    //     }
-
-    //     _SM_ExternalJS.update()
-    //     _SM_ValueInjector.update()
-    //     // TODO: _SM_ConditionalEvaluator.update()
-    //     _SM_EventBinder.update()
-
-    //     _SM_Transforms.update()
-    // }
-
-    static inform(operation) {
+    static inform(operation: SMOperation) {
         switch (operation) {
             case 'Sless':
-                this.#observedOperations.ExtStatelessUpdate = true
+                this._observedOperations.ExtStatelessUpdate = true
                 break;
             case 'EvBind':
-                this.#observedOperations.EventBindingUpdate = true
+                this._observedOperations.EventBindingUpdate = true
                 break;
             case 'Pub':
-                this.#observedOperations.PublishEvent = true
+                this._observedOperations.PublishEvent = true
                 break;
             default:
                 _SM_Log.log(2, 'Invalid operation in SM.inform')
@@ -330,30 +320,30 @@ class _SM_Engine {
         }
 
         if (this.rendererIntrinsics.phase === 'idle')
-            renderer(StatefulMarkupConfig.DISABLE_BATCH_RENDERER || StatefulMarkupConfig.DEBUG_MODE)
+            _SM_Engine.renderer()
     }
 
-    static renderer(batchedRendering = true, forceUpdate = false) {
+    static renderer() {
 
         if (this.rendererIntrinsics.phase === 'idle') {
             this.rendererIntrinsics.phase = 'wait'
             setTimeout(() => {
                 this.rendererIntrinsics.phase = 'start'
-                this.renderer(batchedRendering)
-            }, 1000 / this.rendererIntrinsics.frameTarget)
+                this.renderer()
+            }, StatefulMarkupConfig.isBatchRendered ? 1000 / this.rendererIntrinsics.frameTarget : 0)
 
             return;
         }
-        
-        let tfmns = _SM_Transforms.transforms
-        if (this.rendererIntrinsics.phase === 'start') {
 
-            if (this.#observedOperations.ExtStatelessUpdate) {
+        if (this.rendererIntrinsics.phase === 'start') {
+            let tfmns = _SM_Transforms.transforms
+
+            if (this._observedOperations.ExtStatelessUpdate) {
                 tfmns = _SM_ExternalJS.update(tfmns)
-                tfmns = _SM_ValueInjector.update(tfmns)
+                tfmns = _SM_ValueInjector.update(tfmns, true)
                 tfmns = _SM_EventBinder.update(tfmns)
             }
-            else if (this.#observedOperations.EventBindingUpdate && !this.#observedOperations.PublishEvent) {
+            else if (this._observedOperations.EventBindingUpdate && !this._observedOperations.PublishEvent) {
                 tfmns = _SM_Transforms.shardCurrentMirror(tfmns)
                 tfmns = _SM_EventBinder.update(tfmns)
             }
@@ -361,25 +351,27 @@ class _SM_Engine {
                 tfmns = _SM_ValueInjector.update(tfmns)
                 tfmns = _SM_EventBinder.update(tfmns)
             }
-            
+
+            _SM_Transforms.update(tfmns)
             this.rendererIntrinsics.phase = 'idle'
         }
-        
+
         if (this.rendererIntrinsics.phase === 'init') {
-            
+            let subscribers = _SM_Manager.refreshSubs()
+            let tfmns = _SM_Transforms.createTransforms(subscribers)
+            console.log("init", tfmns)
             tfmns = _SM_ExternalJS.update(tfmns)
             tfmns = _SM_ValueInjector.update(tfmns)
             tfmns = _SM_EventBinder.update(tfmns)
-            tfmns = _SM_Transforms.update(tfmns)
-            
+            _SM_Transforms.update(tfmns)
+
             this.rendererIntrinsics.phase = 'idle'
         }
 
-        _SM_Log.log(1, 'Render phase finished.')
-        _SM_Transforms.update(tfmns)
+        _SM_Log.log(1, '%c  Render phase finished.')
     }
 
-    static #observedOperations = {
+    private static _observedOperations = {
         PublishEvent: false,
         EventBindingUpdate: false,
         ExtStatelessUpdate: false
@@ -387,17 +379,16 @@ class _SM_Engine {
 
     static rendererIntrinsics = {
         phase: 'init',
-        frameTarget: 30,
-        firstRender: true
+        frameTarget: 30
     }
 }
 
 class _SM_Log {
 
-    static colorSev1 = 'color: yellow'
-    static colorSev2 = 'color: red'
+    private static colorSev1 = 'color: yellow'
+    private static colorSev2 = 'color: red'
 
-    static log(severity, message) {
+    static log(severity: number, message: string) {
         if (severity == 1) {
             if (StatefulMarkupConfig.DEBUG_LOGS || StatefulMarkupConfig.DEBUG_MODE) {
                 console.log(message, this.colorSev1)

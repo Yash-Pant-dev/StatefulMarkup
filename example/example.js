@@ -4,7 +4,8 @@ StatefulMarkupConfig.DEBUG_MODE = true
 
 function fetchName() {
     setTimeout(() => {
-        StatefulMarkup.publish({ type: "varUpdate", var: "name", val: "Yash" })
+        StatefulMarkup.publish({ var: "name", val: "Yash" })
+        console.log("Name pubbed.")
     }, 0)
     setTimeout(() => {
         StatefulMarkup.publish({ type: "varUpdate", var: "gender", val: "male" })
@@ -21,6 +22,10 @@ function changeColor() {
 
     setTimeout(() => {
         StatefulMarkup.publish({ type: "varUpdate", var: "color", val: "redCSS" })
+        setTimeout(() => {
+            StatefulMarkup.publish({ var: "name", val: "YashP" })
+            console.log("Name pubbed.")
+        }, 100)
     }, 1400)
 }
 
@@ -49,10 +54,13 @@ function demo() {
 // setTimeout(() => {document.getElementById("redCSS").addEventListener("click", () => {
 //     console.log("el")
 // })}, 2000)
-StatefulMarkup.addListener("#redCSS",
-    "click",
-    () => { console.log("el") },
-    {})
+setTimeout(() => {
+
+    StatefulMarkup.addListener("#redCSS",
+        "click",
+        () => { console.log("Shard mirror") },
+        {})
+}, 2500)
 
 // External Manipulation 
 // Example : Editing the dom.

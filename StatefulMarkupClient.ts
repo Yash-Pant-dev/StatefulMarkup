@@ -13,7 +13,7 @@
 */
 class StatefulMarkupClient {
 
-    constructor(...args) {
+    constructor(...args: string[]) {
         console.log("StatefulMarkup Client initialized -v0.1", ...args)
     }
 
@@ -22,14 +22,14 @@ class StatefulMarkupClient {
         We keep a publisher type method to make it extendable for future event types
         apart from the var updates, such as refreshSubs.
     */
-    publish(newEvent) {
-        StatefulMarkupClient.#eventsBuffer.push(
+    publish(newEvent: EventDetails) {
+        StatefulMarkupClient._eventsBuffer.push(
             {
-                id: StatefulMarkupClient.#eventId++,
+                id: StatefulMarkupClient._eventId++,
                 event: newEvent
             })
 
-        _informEngine('Pub')
+        StatefulMarkupClient._informEngine('Pub')
     }
 
     /*  
@@ -38,17 +38,17 @@ class StatefulMarkupClient {
         (domCollection(using document.getElementById),onEvent etc) 
         then it would update the mirrors instead of the (yet unadded to the DOM) shards. 
     */
-    addListener(selector, onEvent, callback, optionalArgs) {
-        StatefulMarkupClient.#eventListeners.push(
+    addListener(selector: QuerySelector, onEvent: OnEvent, callback: EventListener, optionalArgs: AddEventListenerOptions) {
+        StatefulMarkupClient._eventListeners.push(
             {
-                id: StatefulMarkupClient.#listenerId++,
+                id: StatefulMarkupClient._listenerId++,
                 selector,
                 onEvent,
                 callback,
                 optionalArgs
             })
 
-        _informEngine('EvBind')
+        StatefulMarkupClient._informEngine('EvBind')
     }
 
     /* 
@@ -56,43 +56,49 @@ class StatefulMarkupClient {
         The modification should not depend on any values injected by @vars, ie only stateless updates
         must be performed.
     */
-    addExternalManipulation(selector, modifier) {
-        StatefulMarkupClient.#statelessUpdates.push(
+    addExternalManipulation(selector: QuerySelector, modifier: Function) {
+        StatefulMarkupClient._statelessUpdates.push(
             {
-                id: StatefulMarkupClient.#updateId++,
+                id: StatefulMarkupClient._updateId++,
                 selector,
-                modifier,
+                modifier
             })
 
-        _informEngine('Sless')
+        StatefulMarkupClient._informEngine('Sless')
     }
 
-    static _informEngine(operation) {
+    static _informEngine(operation: SMOperation) {
         if (typeof _SM_Engine === typeof Function) {
             _SM_Engine.inform(operation)
         }
     }
 
     static set eventsBuffer(newEventsBuffer) {
-        this.#eventsBuffer = newEventsBuffer
+        this._eventsBuffer = newEventsBuffer
+    }
+    static get eventsBuffer() {
+        return this._eventsBuffer
     }
 
     static get eventListeners() {
-        return this.#eventListeners
+        return this._eventListeners
+    }
+    static set eventListeners(newListeners) {
+        this._eventListeners = newListeners
     }
 
     static get statelessUpdates() {
-        return this.#statelessUpdates
+        return this._statelessUpdates
     }
 
-    static #eventsBuffer = []
-    static #eventId = 1
+    private static _eventsBuffer: Array<SMEvent> = []
+    private static _eventId = 1
 
-    static #eventListeners = []
-    static #listenerId = 1
+    private static _eventListeners: Array<SMListener> = []
+    private static _listenerId = 1
 
-    static #statelessUpdates = []
-    static #updateId = 1
+    private static _statelessUpdates: Array<SMExterns> = []
+    private static _updateId = 1
 }
 
 class StatefulMarkupConfig {
@@ -102,5 +108,11 @@ class StatefulMarkupConfig {
     static REFRESH_SUBS_ALWAYS = false // Refresh subs after every update.
     static DEBUG_LOGS = false // Verbose logging.
     static DISABLE_BATCH_RENDERER = false // If false, updates are not batched for performance.
-    // TODO: Is toggled off for now.
+
+    static get isBatchRendered() {
+        // TODO: Uncomment
+        // if (this.DEBUG_MODE || this.DISABLE_BATCH_RENDERER)
+        //     return false
+        return true
+    }
 }
