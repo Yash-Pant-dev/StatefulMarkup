@@ -27,14 +27,16 @@
     </div>
     <div class="_sm gender">
         I am a
-        @_if(@gender == "male")
+        @_cond
+        if("@gender" == "male")
         {
-        <div>Male!</div>
+            return `<div id = "male">Male!</div>`
         }
-        @_if(@gender == "female")
+        if("@gender" == "female")
         {
-        <div>!Male!</div>
+            return `<div>!Male!</div>`
         }
+        @_endcond
     </div>
 </body>
 

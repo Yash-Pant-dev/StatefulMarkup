@@ -10,7 +10,11 @@ interface SMEvent {
 }
 
 interface EventDetails {
-    readonly [index: string]: string | undefined
+    readonly [index: string]: string | undefined | EventPubOptions
+}
+
+interface EventPubOptions {
+    persists: boolean
 }
 
 type SMListener = {id: Id} & ListenerDetails
@@ -39,3 +43,9 @@ interface SMTransform {
 }
 
 type SMOperation = 'Sless' | 'EvBind' | 'Pub'
+
+interface PersistingVars {
+    var: string,
+    val: string
+}
+

@@ -5,26 +5,24 @@ StatefulMarkupConfig.DEBUG_MODE = true
 function fetchName() {
     setTimeout(() => {
         StatefulMarkup.publish({ var: "name", val: "Yash" })
-        console.log("Name pubbed.")
     }, 0)
     setTimeout(() => {
-        StatefulMarkup.publish({ type: "varUpdate", var: "gender", val: "male" })
+        StatefulMarkup.publish({ type: "update", var: "gender", val: "male" })
     }, 0)
 }
 
 function changeColor() {
     setTimeout(() => {
-        StatefulMarkup.publish({ type: "varUpdate", var: "color", val: "blueCSS" })
+        StatefulMarkup.publish({ type: "update", var: "color", val: "blueCSS" })
     }, 0)
     setTimeout(() => {
         eventListenerSetup()
     }, 500)
 
     setTimeout(() => {
-        StatefulMarkup.publish({ type: "varUpdate", var: "color", val: "redCSS" })
+        StatefulMarkup.publish({ type: "update", var: "color", val: "redCSS" })
         setTimeout(() => {
             StatefulMarkup.publish({ var: "name", val: "YashP" })
-            console.log("Name pubbed.")
         }, 100)
     }, 1400)
 }
@@ -61,6 +59,11 @@ setTimeout(() => {
         () => { console.log("Shard mirror") },
         {})
 }, 2500)
+
+StatefulMarkup.addListener("#male",
+    "click",
+    () => { console.log("conditional listener") },
+    {})
 
 // External Manipulation 
 // Example : Editing the dom.
