@@ -108,7 +108,7 @@ class StatefulMarkupConfig {
     static REFRESH_SUBS_ALWAYS = false // Refresh subs after every update.
     static DEBUG_LOGS = false // Verbose logging.
     static DISABLE_BATCH_RENDERER = false // If false, updates are not batched for performance.
-    static FRAME_TARGET = 30
+    static TARGET_FRAMERATE = 30
 
     static get isBatchRendered() {
         // TODO: Uncomment

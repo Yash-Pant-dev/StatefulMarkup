@@ -49,3 +49,6 @@ interface PersistingVars {
     val: string
 }
 
+interface JSONObj {
+    [idx: string]: any
+}

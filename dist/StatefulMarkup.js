@@ -9,23 +9,37 @@ const _SM_Version = 0.1;
         _SM_Log.log(2, "%c  SMClient must be first script to load.");
     }
     addEventListener("load", (e) => {
-        _SM_Initialization.load();
+        _SM_Initialization.loadPersistingData();
         _SM_Engine.renderer();
     });
 })();
+const persistKeyword = "_SM_Persist_";
 class _SM_Initialization {
-    /*
-        {
-            vars: [
-                {}, {}, {}
-            ]
+    static loadPersistingData() {
+        let persistingEvents = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            let key = localStorage.key(i);
+            let val = localStorage.getItem(key);
+            if (key === null || key === void 0 ? void 0 : key.startsWith(persistKeyword)) {
+                persistingEvents.push({
+                    id: -i,
+                    event: {
+                        type: "update_p",
+                        var: key.substring(persistKeyword.length),
+                        val: val
+                    }
+                });
+            }
         }
-    */
-    static load() {
-        const _SM_DATA = localStorage.getItem("_SM_Data");
-        if (_SM_DATA !== null) {
-            const persistentData = JSON.parse(_SM_DATA);
-            _SM_ValueInjector.init(persistentData.vars);
+        persistingEvents.push(...StatefulMarkupClient.eventsBuffer);
+        StatefulMarkupClient.eventsBuffer = persistingEvents;
+    }
+    static __clearPersistingData() {
+        for (let i = 0; i < localStorage.length; i++) {
+            let key = localStorage.key(i);
+            if (key === null || key === void 0 ? void 0 : key.startsWith(persistKeyword)) {
+                localStorage.removeItem(key);
+            }
         }
     }
 }
@@ -113,12 +127,6 @@ _SM_Transforms._transforms = [];
     the values published through the SM Client.
 */
 class _SM_ValueInjector {
-    static init(persistents) {
-        persistents.forEach(mapping => {
-            this._varMap.set(mapping.var, mapping.val);
-            _SM_Engine.inform('Pub');
-        });
-    }
     /*
         Force update updates the provided transforms even if mapping is as before.
         Used when a new transform is created.
@@ -129,8 +137,9 @@ class _SM_ValueInjector {
         if (!forceUpdate && !isMappingUpdated)
             return newTransforms;
         transforms.forEach((tfmn) => {
+            var _b;
             const element = tfmn.element;
-            const shard = element.cloneNode(true);
+            const shard = (_b = tfmn.shard) !== null && _b !== void 0 ? _b : element.cloneNode(true);
             const mirror = tfmn.mirror;
             // Inject values in attributes
             for (let elementAttributeName of element.getAttributeNames()) {
@@ -161,29 +170,34 @@ class _SM_ValueInjector {
     static _mappingUpdater() {
         const unprocessedEvents = [];
         let isMappingUpdated = false;
-        _SM_Manager.events.forEach(publishedEvent => {
-            if (publishedEvent.event.type === undefined || publishedEvent.event.type === "update") {
-                // if (typeof publishedEvent.event.options === typeof {}) {
-                //     let persists = (publishedEvent.event.options as EventPubOptions).persists
-                //     if (persists) {
-                //         localStorage.setItem(localStorage.getItem)
-                //     }
-                // }
-                if (this._varMap.get(publishedEvent.event.var) != publishedEvent.event.val) {
+        _SM_Manager.events.forEach(evt => {
+            if (evt.event.type === undefined
+                || evt.event.type === "update"
+                || evt.event.type === "update_p") {
+                if (evt.event.type === "update_p") {
+                    localStorage.setItem(persistKeyword + evt.event.var, evt.event.value);
+                }
+                if (this._varMap.get(evt.event.var) != evt.event.val) {
                     isMappingUpdated = true;
-                    this._varMap.set(publishedEvent.event.var, publishedEvent.event.val);
+                    this._varMap.set(evt.event.var, evt.event.val);
                 }
             }
             else {
-                unprocessedEvents.push(publishedEvent);
+                unprocessedEvents.push(evt);
             }
         });
         _SM_Manager.events = unprocessedEvents;
         return isMappingUpdated;
     }
-    static _replacer(input) {
+    /*
+        An optional map can be passed which replaces the search string with entries
+        in the map, instead of _varMap.
+    */
+    static _replacer(input, map) {
         let output = input;
-        this._varMap.forEach((v, k, m) => {
+        if (!map)
+            map = this._varMap;
+        map.forEach((v, k, m) => {
             const varRegex = new RegExp("@" + k, "g");
             output = output.replace(varRegex, v);
         });
@@ -194,6 +208,133 @@ class _SM_ValueInjector {
     }
 }
 _SM_ValueInjector._varMap = new Map();
+/*
+    Construct Injector -
+    Evaluates special terms starting with @_ such as @_for/@_if
+*/
+class _SM_ConstructInjector {
+    static update(transforms) {
+        transforms.forEach(tfmn => {
+            this.content = tfmn.shard.innerHTML;
+            this.parseConstructs();
+            tfmn.shard.innerHTML = this.content;
+        });
+        _SM_Log.log(1, "%c  Construct Injector update");
+        return transforms;
+    }
+    // Identifies and evaluates all constructs in code.
+    static parseConstructs() {
+        while (this.containsConstruct()) {
+            let [start, retStart, retEnd] = this._getMarkers();
+            this._evaluate(start, retStart, retEnd);
+        }
+    }
+    static containsConstruct() {
+        return this.content.includes("@_");
+    }
+    // Find the @_for/if construct, along with start and end brackets of body
+    static _getMarkers() {
+        let start = -1, bodyStart = -1, bodyEnd = -1;
+        let balance = 0;
+        for (let i = 0; i < this.content.length - 1; i++) {
+            let chars = this.content[i] + this.content[i + 1];
+            if (chars === "@_") {
+                if (start === -1) {
+                    start = i;
+                }
+            }
+            else if (chars === "@{") {
+                balance++;
+                if (bodyStart === -1)
+                    bodyStart = i;
+            }
+            else if (chars === "}@") {
+                balance--;
+                if (balance === 0) {
+                    bodyEnd = i;
+                    break;
+                }
+            }
+        }
+        if (Math.min(start, bodyStart, bodyEnd) === -1) {
+            throw Error("Insufficient markers.");
+        }
+        return [start, bodyStart, bodyEnd];
+    }
+    // Passes the evaluation to the relevant construct type.
+    static _evaluate(start, retStart, retEnd) {
+        let constructType = this._getConstructTag(start);
+        if (constructType === 'for') {
+            this._forInjection(start, retStart, retEnd);
+        }
+        else if (constructType === 'if') {
+            this._ifInjection(start, retStart, retEnd);
+        }
+        else
+            throw Error("Invalid constructType");
+    }
+    static _getConstructTag(idx) {
+        let constructName = '';
+        for (let i = idx; i < this.content.length; i++) {
+            constructName += this.content[i];
+            switch (constructName) {
+                case '@_for': {
+                    return 'for';
+                }
+                case '@_if': {
+                    return 'if';
+                }
+                default:
+                    break;
+            }
+        }
+        throw Error("No construct found");
+    }
+    /*
+        Injects variables to @_x.properties collected from the array of objects in the
+        header of @_for()
+    */
+    static _forInjection(start, retStart, retEnd) {
+        const forTagLen = 5; // @_for
+        let header = this.content.substring(start + forTagLen, retStart).trim();
+        header = header.substring(1, header.length - 1);
+        let collection = JSON.parse(header);
+        let curExpansion = this.content.substring(retStart + 2, retEnd);
+        let bodyExpansion = '';
+        collection.forEach(objectItem => {
+            let objectData = new Map();
+            for (const prop in objectItem) {
+                objectData.set("_x." + prop, objectItem[prop]);
+            }
+            curExpansion = _SM_ValueInjector._replacer(curExpansion, objectData);
+            bodyExpansion += curExpansion;
+        });
+        let modifiedContent = this.content.substring(0, start)
+            + bodyExpansion
+            + this.content.substring(retEnd + 2, this.content.length);
+        this.content = modifiedContent;
+    }
+    static _ifInjection(start, retStart, retEnd) {
+        const forTagLen = 4; // @_for
+        let header = this.content.substring(start + forTagLen, retStart).trim();
+        header = header.substring(1, header.length - 1);
+        let isConditionTrue = eval(header);
+        let bodyExpansion = '';
+        if (isConditionTrue)
+            bodyExpansion = this.content.substring(retStart + 2, retEnd);
+        let modifiedContent = this.content.substring(0, start)
+            + bodyExpansion
+            + this.content.substring(retEnd + 2, this.content.length);
+        this.content = modifiedContent;
+    }
+}
+/*
+    A cloned node does not contain the event listeners associated with the original
+    element. Hence, every shard must re attach the provided event listeners.
+
+    In case only event binders have been updated, we can directly clone the mirror
+    for an efficient copy.
+*/
 class _SM_EventBinder {
     static get _listeners() {
         return StatefulMarkupClient.eventListeners;
@@ -228,7 +369,8 @@ class _SM_ExternalJS {
         return StatefulMarkupClient.statelessUpdates;
     }
     /*
-        Performs updates on the original DOM elements.
+        Performs updates on the original DOM elements to provide structural modifications.
+        The updates must not depend on any state exposed by the StatefulMarkup.
     */
     static update(transforms) {
         const newTransforms = [];
@@ -248,46 +390,6 @@ class _SM_ExternalJS {
             }
         });
         return newTransforms;
-    }
-}
-class _SM_Constructs {
-    static update(transforms) {
-        transforms.forEach(tfmn => {
-            this._contentUnderEvaluation = tfmn.shard.innerHTML;
-            let initialContent = this._contentUnderEvaluation;
-            while (this._containsConstruct()) {
-                this._parseConstruct();
-            }
-            if (initialContent !== this._contentUnderEvaluation) {
-                if (tfmn.shard !== null) {
-                    tfmn.shard.innerHTML = this._contentUnderEvaluation;
-                }
-                else {
-                    console.log("Impossible - Conditional on Empty Shard.");
-                }
-            }
-        });
-        return transforms;
-    }
-    static _parseConstruct() {
-        const [stmtStart, stmtEnd] = this._findConstructMarkers();
-        const evaluatedValue = this._evaluateCondition(stmtStart + 6, stmtEnd - 1);
-        this._contentUnderEvaluation = this._contentUnderEvaluation.replace(this._contentUnderEvaluation.substring(stmtStart, stmtEnd + 9), evaluatedValue);
-    }
-    static _evaluateCondition(openingBracketPos, closingBracketPos) {
-        const constructCode = this._contentUnderEvaluation.substring(openingBracketPos, closingBracketPos);
-        return (new Function(constructCode))();
-    }
-    static _findConstructMarkers() {
-        let conditionalStart = this._contentUnderEvaluation.indexOf("@_cond");
-        let conditionalEnd = this._contentUnderEvaluation.indexOf("@_endcond");
-        return [conditionalStart, conditionalEnd];
-    }
-    static _containsConstruct() {
-        let index = this._contentUnderEvaluation.indexOf("@_cond");
-        if (index === -1)
-            return false;
-        return true;
     }
 }
 /*
@@ -327,8 +429,8 @@ class _SM_Engine {
     }
     static renderer() {
         if (this.rendererIntrinsics.phase === 'idle') {
-            this.rendererIntrinsics.phase = 'wait';
             if (StatefulMarkupConfig.isBatchRendered) {
+                this.rendererIntrinsics.phase = 'wait';
                 setTimeout(() => {
                     this.rendererIntrinsics.phase = 'start';
                     this.renderer();
@@ -350,13 +452,13 @@ class _SM_Engine {
                 }
                 else
                     tfmns = _SM_ValueInjector.update(tfmns, true);
-                tfmns = _SM_Constructs.update(tfmns);
+                tfmns = _SM_ConstructInjector.update(tfmns);
                 tfmns = _SM_EventBinder.update(tfmns);
             }
             else if (this._observedOperations.PublishEvent) {
                 _SM_Log.log(3, "%c VI");
                 tfmns = _SM_ValueInjector.update(tfmns);
-                tfmns = _SM_Constructs.update(tfmns);
+                tfmns = _SM_ConstructInjector.update(tfmns);
                 tfmns = _SM_EventBinder.update(tfmns);
             }
             else if (this._observedOperations.EventBindingUpdate) {
@@ -372,7 +474,6 @@ class _SM_Engine {
         }
         /*
             An init phase indicates the stage before the very first render.
-            Here subscribers must be refreshed.
         */
         if (this.rendererIntrinsics.phase === 'init') {
             _SM_Log.log(3, "%c init phase");
@@ -380,6 +481,7 @@ class _SM_Engine {
             let tfmns = _SM_Transforms.createTransforms(subscribers);
             tfmns = _SM_ExternalJS.update(tfmns);
             tfmns = _SM_ValueInjector.update(tfmns);
+            tfmns = _SM_ConstructInjector.update(tfmns);
             tfmns = _SM_EventBinder.update(tfmns);
             _SM_Transforms.update(tfmns);
             this.rendererIntrinsics.phase = 'idle';
@@ -401,7 +503,7 @@ _SM_Engine._observedOperations = {
 };
 _SM_Engine.rendererIntrinsics = {
     phase: 'init',
-    frameTarget: StatefulMarkupConfig.FRAME_TARGET
+    frameTarget: StatefulMarkupConfig.TARGET_FRAMERATE
 };
 class _SM_Log {
     static log(severity, message) {

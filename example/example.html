@@ -25,19 +25,18 @@
         the the framework!  -->
         My name is: @name
     </div>
+    
     <div class="_sm gender">
         I am a
-        @_cond
-        if("@gender" == "male")
-        {
-            return `<div id = "male">Male!</div>`
-        }
-        if("@gender" == "female")
-        {
-            return `<div>!Male!</div>`
-        }
-        @_endcond
+        @_for(@list)
+        @{
+            <div id="male">@_x.name</div>
+            @_if("@_x.name" == "yash")
+            @{
+                <div>Male!</div>
+            }@
+        }@
+
     </div>
 </body>
-
 </html>

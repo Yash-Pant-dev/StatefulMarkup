@@ -7,7 +7,10 @@ function fetchName() {
         StatefulMarkup.publish({ var: "name", val: "Yash" })
     }, 0)
     setTimeout(() => {
-        StatefulMarkup.publish({ type: "update", var: "gender", val: "male" })
+        StatefulMarkup.publish({ type: "update_p", var: "gender", val: "male" })
+    }, 0)
+    setTimeout(() => {
+        StatefulMarkup.publish({ var: "list", val: `[{"name": "yash"}]` })
     }, 0)
 }
 

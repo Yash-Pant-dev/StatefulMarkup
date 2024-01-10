@@ -95,4 +95,4 @@ StatefulMarkupConfig.DEBUG_MODE = true;
 StatefulMarkupConfig.REFRESH_SUBS_ALWAYS = false; // Refresh subs after every update.
 StatefulMarkupConfig.DEBUG_LOGS = false; // Verbose logging.
 StatefulMarkupConfig.DISABLE_BATCH_RENDERER = false; // If false, updates are not batched for performance.
-StatefulMarkupConfig.FRAME_TARGET = 30;
+StatefulMarkupConfig.TARGET_FRAMERATE = 30;
