@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+      "target": "ES6",
+      "module": "None",
+      "outDir": "dist",
+      "strictNullChecks": true,
+      "noImplicitAny": true
+    }
+}
