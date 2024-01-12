@@ -1,8 +1,10 @@
 const AuthComponent = {
-    name: auth,
+    name: "auth",
     template: `
     <div>
     Username - @name
     </div>
     `
 }
+
+StatefulMarkupClient.registerComponent(AuthComponent)

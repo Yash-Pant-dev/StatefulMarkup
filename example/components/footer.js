@@ -1,8 +1,10 @@
 const FooterComponent = {
-    name: footer,
+    name: "footer",
     template: `
     <div>
     Copyright @name
     </div>
     `
 }
+
+StatefulMarkupClient.registerComponent(FooterComponent)

@@ -67,6 +67,20 @@ class StatefulMarkupClient {
         StatefulMarkupClient._informEngine('Sless')
     }
 
+    static registerComponent(cmp: Component) {
+
+        this.eventsBuffer.push({
+            id: StatefulMarkupClient._eventId++,
+            event: {
+                type: "component",
+                var: "@" + cmp.name,
+                val: cmp.template
+            }
+        })
+
+        StatefulMarkupClient._informEngine('Pub')
+    }
+
     static _informEngine(operation: SMOperation) {
         if (typeof _SM_Engine === typeof Function) {
             _SM_Engine.inform(operation)
@@ -92,17 +106,37 @@ class StatefulMarkupClient {
     }
 
     private static _eventsBuffer: Array<SMEvent> = []
-    private static _eventId = 1
+    static _eventId = 1
 
     private static _eventListeners: Array<SMListener> = []
     private static _listenerId = 1
 
     private static _statelessUpdates: Array<SMExterns> = []
     private static _updateId = 1
+
+    static INIT_TIME = Date.now()
+    static _dumpLogs() {
+        console.groupCollapsed("StatefulMarkup Logs - t elapsed:", (Date.now() - this.INIT_TIME) / 1000)
+        console.groupCollapsed("PubSub")
+        console.log(StatefulMarkupClient.eventsBuffer)
+        console.log(StatefulMarkupClient.eventListeners)
+        console.log(StatefulMarkupClient.statelessUpdates)
+        console.groupEnd()
+        if (typeof _SM_Engine !== undefined) {
+            console.groupCollapsed("Engine")
+            console.log(_SM_Transforms.transforms)
+            console.log(_SM_ValueInjector._getMapping())
+            console.groupEnd()
+            console.groupCollapsed("Renderer")
+            console.log(_SM_Engine.rendererIntrinsics)
+            console.log(_SM_Engine._observedOperations)
+            console.groupEnd()
+        }
+        console.groupEnd()
+    }
 }
 
 class StatefulMarkupConfig {
-    /*  If true, each of the following are toggled from their default values. */
     static DEBUG_MODE = true
 
     static REFRESH_SUBS_ALWAYS = false // Refresh subs after every update.

@@ -22,7 +22,7 @@ class _SM_Initialization {
             let val = localStorage.getItem(key);
             if (key === null || key === void 0 ? void 0 : key.startsWith(persistKeyword)) {
                 persistingEvents.push({
-                    id: -i,
+                    id: StatefulMarkupClient._eventId++,
                     event: {
                         type: "update_p",
                         var: key.substring(persistKeyword.length),
@@ -173,7 +173,8 @@ class _SM_ValueInjector {
         _SM_Manager.events.forEach(evt => {
             if (evt.event.type === undefined
                 || evt.event.type === "update"
-                || evt.event.type === "update_p") {
+                || evt.event.type === "update_p"
+                || evt.event.type === "component") {
                 if (evt.event.type === "update_p") {
                     localStorage.setItem(persistKeyword + evt.event.var, evt.event.value);
                 }
@@ -205,6 +206,9 @@ class _SM_ValueInjector {
     }
     static __clearMap() {
         this._varMap.clear();
+    }
+    static _getMapping() {
+        return this._varMap;
     }
 }
 _SM_ValueInjector._varMap = new Map();
@@ -443,9 +447,9 @@ class _SM_Engine {
         }
         if (this.rendererIntrinsics.phase === 'start') {
             let tfmns = _SM_Transforms.transforms;
-            _SM_Log.log(3, "%c StartPhase");
+            _SM_Log.log(3, "%c  StartPhase");
             if (this._observedOperations.ExtStatelessUpdate) {
-                _SM_Log.log(3, "%c Ext Manip");
+                _SM_Log.log(3, "%c  Ext Manip");
                 let t1 = _SM_ExternalJS.update(tfmns);
                 if (!this._observedOperations.PublishEvent) {
                     tfmns = _SM_ValueInjector.update(t1, true);
@@ -467,7 +471,7 @@ class _SM_Engine {
                 tfmns = _SM_EventBinder.update(tfmns);
             }
             else {
-                console.log(2, "%c  Impossible Render phase.");
+                _SM_Log.log(2, "%c  Impossible Render phase.");
             }
             _SM_Transforms.update(tfmns);
             this.rendererIntrinsics.phase = 'idle';
@@ -476,10 +480,10 @@ class _SM_Engine {
             An init phase indicates the stage before the very first render.
         */
         if (this.rendererIntrinsics.phase === 'init') {
-            _SM_Log.log(3, "%c init phase");
+            _SM_Log.log(3, "%c  init phase");
             let subscribers = _SM_Manager.refreshSubs();
             let tfmns = _SM_Transforms.createTransforms(subscribers);
-            tfmns = _SM_ExternalJS.update(tfmns);
+            _SM_ExternalJS.update(tfmns);
             tfmns = _SM_ValueInjector.update(tfmns);
             tfmns = _SM_ConstructInjector.update(tfmns);
             tfmns = _SM_EventBinder.update(tfmns);

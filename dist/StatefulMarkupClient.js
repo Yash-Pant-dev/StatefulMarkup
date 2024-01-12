@@ -55,6 +55,17 @@ class StatefulMarkupClient {
         });
         StatefulMarkupClient._informEngine('Sless');
     }
+    static registerComponent(cmp) {
+        this.eventsBuffer.push({
+            id: StatefulMarkupClient._eventId++,
+            event: {
+                type: "component",
+                var: "@" + cmp.name,
+                val: cmp.template
+            }
+        });
+        StatefulMarkupClient._informEngine('Pub');
+    }
     static _informEngine(operation) {
         if (typeof _SM_Engine === typeof Function) {
             _SM_Engine.inform(operation);
@@ -75,6 +86,25 @@ class StatefulMarkupClient {
     static get statelessUpdates() {
         return this._statelessUpdates;
     }
+    static _dumpLogs() {
+        console.groupCollapsed("StatefulMarkup Logs - t elapsed:", (Date.now() - this.INIT_TIME) / 1000);
+        console.groupCollapsed("PubSub");
+        console.log(StatefulMarkupClient.eventsBuffer);
+        console.log(StatefulMarkupClient.eventListeners);
+        console.log(StatefulMarkupClient.statelessUpdates);
+        console.groupEnd();
+        if (typeof _SM_Engine !== undefined) {
+            console.groupCollapsed("Engine");
+            console.log(_SM_Transforms.transforms);
+            console.log(_SM_ValueInjector._getMapping());
+            console.groupEnd();
+            console.groupCollapsed("Renderer");
+            console.log(_SM_Engine.rendererIntrinsics);
+            console.log(_SM_Engine._observedOperations);
+            console.groupEnd();
+        }
+        console.groupEnd();
+    }
 }
 StatefulMarkupClient._eventsBuffer = [];
 StatefulMarkupClient._eventId = 1;
@@ -82,6 +112,7 @@ StatefulMarkupClient._eventListeners = [];
 StatefulMarkupClient._listenerId = 1;
 StatefulMarkupClient._statelessUpdates = [];
 StatefulMarkupClient._updateId = 1;
+StatefulMarkupClient.INIT_TIME = Date.now();
 class StatefulMarkupConfig {
     static get isBatchRendered() {
         // TODO: Uncomment
@@ -90,7 +121,6 @@ class StatefulMarkupConfig {
         return true;
     }
 }
-/*  If true, each of the following are toggled from their default values. */
 StatefulMarkupConfig.DEBUG_MODE = true;
 StatefulMarkupConfig.REFRESH_SUBS_ALWAYS = false; // Refresh subs after every update.
 StatefulMarkupConfig.DEBUG_LOGS = false; // Verbose logging.

@@ -1,3 +1,4 @@
+<!doctype html>
 <html>
 
 <head>
@@ -7,11 +8,12 @@
 </head>
 
 <script src="../dist/StatefulMarkupClient.js"></script>
+<script src="./components/auth.js"></script>
+<script src="./components/footer.js"></script>
 <script src="example.js"></script>
 <script defer src="../dist/StatefulMarkup.js"></script>
 
 <link rel="stylesheet" href="example.css">
-
 
 
 <!-- This is an example page with two divs functioning as markupUI components -->
@@ -25,18 +27,25 @@
         the the framework!  -->
         My name is: @name
     </div>
-    
+
     <div class="_sm gender">
-        I am a
+        I am a @name
         @_for(@list)
         @{
             <div id="male">@_x.name</div>
-            @_if("@_x.name" == "yash")
+            @_if("@_x.name" !== "yash")
             @{
                 <div>Male!</div>
             }@
         }@
 
     </div>
+
+    <div class="_sm footer">
+        @_if("@name" === "YashP")@{
+            @@footer
+        }@
+    </div>
+
 </body>
 </html>

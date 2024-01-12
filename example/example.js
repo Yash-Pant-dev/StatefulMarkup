@@ -1,4 +1,4 @@
-const StatefulMarkup = new StatefulMarkupClient("Example.js")
+const StatefulMarkup = new StatefulMarkupClient("example.js")
 StatefulMarkupConfig.DEBUG_MODE = true
 
 
@@ -20,14 +20,17 @@ function changeColor() {
     }, 0)
     setTimeout(() => {
         eventListenerSetup()
-    }, 500)
+    }, 0)
 
     setTimeout(() => {
         StatefulMarkup.publish({ type: "update", var: "color", val: "redCSS" })
         setTimeout(() => {
             StatefulMarkup.publish({ var: "name", val: "YashP" })
-        }, 100)
-    }, 1400)
+        }, 0)
+        StatefulMarkup.addExternalManipulation(".intro", function (element) {
+            element.innerHTML = "Updated DOM using external manipulation. My name is @name."
+        })
+    }, 2000)
 }
 
 fetchName()
@@ -41,27 +44,17 @@ function eventListenerSetup() {
         })
     })
 }
-// console.log(typeof getElementsByClassName("asd"))
+
 function demo() {
     console.log("clickable")
 }
 
-// StatefulMarkup.bindEventListeners(eventListenerSetup)
-// StatefulMarkup._unsafe_bindEventListeners()
-// function f() {
-//     addEventListener
-// }
-
-// setTimeout(() => {document.getElementById("redCSS").addEventListener("click", () => {
-//     console.log("el")
-// })}, 2000)
 setTimeout(() => {
-
     StatefulMarkup.addListener("#redCSS",
         "click",
         () => { console.log("Shard mirror") },
         {})
-}, 2500)
+}, 0)
 
 StatefulMarkup.addListener("#male",
     "click",
@@ -73,3 +66,11 @@ StatefulMarkup.addListener("#male",
 StatefulMarkup.addExternalManipulation(".intro", function (element) {
     element.innerHTML = "Updated DOM using external manipulation. My name is @name."
 })
+
+let a = setInterval(()=> {
+    StatefulMarkupClient._dumpLogs()
+}, 1000)
+
+setTimeout(() => {
+    clearInterval(a)
+}, 2000)

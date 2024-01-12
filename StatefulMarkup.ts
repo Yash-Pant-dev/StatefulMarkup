@@ -30,7 +30,7 @@ class _SM_Initialization {
 
             if (key?.startsWith(persistKeyword)) {
                 persistingEvents.push({
-                    id: -i,
+                    id: StatefulMarkupClient._eventId++,
                     event: {
                         type: "update_p",
                         var: key.substring(persistKeyword.length),
@@ -188,7 +188,7 @@ class _SM_ValueInjector {
 
                 if (elementAttributeName.startsWith("_sm_")) {
                     let possibleVariable = elementAttributeName.replace("_sm_", "")
-                    if (this._varMap.has(possibleVariable)) {
+                    if (this._varMap.has(possibleVariable)) {   
                         shardAttributeName = this._varMap.get(possibleVariable)
                     }
                 }
@@ -220,7 +220,8 @@ class _SM_ValueInjector {
         _SM_Manager.events.forEach(evt => {
             if (evt.event.type === undefined
                 || evt.event.type === "update"
-                || evt.event.type === "update_p") {
+                || evt.event.type === "update_p"
+                || evt.event.type === "component") {
 
                 if (evt.event.type === "update_p") {
                     localStorage.setItem(persistKeyword + evt.event.var, evt.event.value as string)
@@ -249,7 +250,7 @@ class _SM_ValueInjector {
 
         if (!map)
             map = this._varMap
-
+        
         map.forEach((v, k, m) => {
             const varRegex = new RegExp("@" + k, "g")
             output = output.replace(varRegex, v)
@@ -260,6 +261,10 @@ class _SM_ValueInjector {
 
     static __clearMap() {
         this._varMap.clear()
+    }
+
+    static _getMapping() {
+        return this._varMap
     }
 
     private static _varMap = new Map()
@@ -563,10 +568,10 @@ class _SM_Engine {
 
         if (this.rendererIntrinsics.phase === 'start') {
             let tfmns = _SM_Transforms.transforms
-            _SM_Log.log(3, "%c StartPhase")
+            _SM_Log.log(3, "%c  StartPhase")
 
             if (this._observedOperations.ExtStatelessUpdate) {
-                _SM_Log.log(3, "%c Ext Manip")
+                _SM_Log.log(3, "%c  Ext Manip")
                 let t1 = _SM_ExternalJS.update(tfmns)
                 if (!this._observedOperations.PublishEvent) {
                     tfmns = _SM_ValueInjector.update(t1, true)
@@ -588,7 +593,7 @@ class _SM_Engine {
                 tfmns = _SM_EventBinder.update(tfmns)
             }
             else {
-                console.log(2, "%c  Impossible Render phase.")
+                _SM_Log.log(2, "%c  Impossible Render phase.")
             }
 
             _SM_Transforms.update(tfmns)
@@ -599,15 +604,15 @@ class _SM_Engine {
             An init phase indicates the stage before the very first render.
         */
         if (this.rendererIntrinsics.phase === 'init') {
-            _SM_Log.log(3, "%c init phase")
+            _SM_Log.log(3, "%c  init phase")
+
             let subscribers = _SM_Manager.refreshSubs()
             let tfmns = _SM_Transforms.createTransforms(subscribers)
-            tfmns = _SM_ExternalJS.update(tfmns)
+            _SM_ExternalJS.update(tfmns)
             tfmns = _SM_ValueInjector.update(tfmns)
             tfmns = _SM_ConstructInjector.update(tfmns)
             tfmns = _SM_EventBinder.update(tfmns)
             _SM_Transforms.update(tfmns)
-
             this.rendererIntrinsics.phase = 'idle'
         }
 
@@ -615,7 +620,7 @@ class _SM_Engine {
         _SM_Log.log(1, '%c  Render phase finished.')
     }
 
-    private static _observedOperations = {
+    static _observedOperations = {
 
         PublishEvent: false,
         EventBindingUpdate: false,

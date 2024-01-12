@@ -10,11 +10,7 @@ interface SMEvent {
 }
 
 interface EventDetails {
-    readonly [index: string]: string | undefined | EventPubOptions
-}
-
-interface EventPubOptions {
-    persists: boolean
+    readonly [index: string]: string
 }
 
 type SMListener = {id: Id} & ListenerDetails
@@ -51,4 +47,9 @@ interface PersistingVars {
 
 interface JSONObj {
     [idx: string]: any
+}
+
+interface Component {
+    name: string
+    template: string
 }
