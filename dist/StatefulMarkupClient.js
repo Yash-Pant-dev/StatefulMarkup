@@ -26,6 +26,9 @@ class StatefulMarkupClient {
         });
         StatefulMarkupClient._informEngine('Pub');
     }
+    update(variable, value) {
+        this.publish({ var: variable, val: value });
+    }
     /*
         addListener collects all the data required for it to efficiently bind to just the
         updated shards. If we instead used a format like
@@ -55,6 +58,9 @@ class StatefulMarkupClient {
         });
         StatefulMarkupClient._informEngine('Sless');
     }
+    /*
+        Registers the components provided to the framework on the Engine.
+    */
     static registerComponent(cmp) {
         this.eventsBuffer.push({
             id: StatefulMarkupClient._eventId++,
@@ -115,9 +121,8 @@ StatefulMarkupClient._updateId = 1;
 StatefulMarkupClient.INIT_TIME = Date.now();
 class StatefulMarkupConfig {
     static get isBatchRendered() {
-        // TODO: Uncomment
-        // if (this.DEBUG_MODE || this.DISABLE_BATCH_RENDERER)
-        //     return false
+        if (this.DEBUG_MODE || this.DISABLE_BATCH_RENDERER)
+            return false;
         return true;
     }
 }

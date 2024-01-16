@@ -31,6 +31,9 @@ class StatefulMarkupClient {
 
         StatefulMarkupClient._informEngine('Pub')
     }
+    update(variable: string, value: string) {
+        this.publish({ var: variable, val: value })
+    }
 
     /*  
         addListener collects all the data required for it to efficiently bind to just the 
@@ -67,6 +70,9 @@ class StatefulMarkupClient {
         StatefulMarkupClient._informEngine('Sless')
     }
 
+    /* 
+        Registers the components provided to the framework on the Engine.
+    */
     static registerComponent(cmp: Component) {
 
         this.eventsBuffer.push({
@@ -145,9 +151,8 @@ class StatefulMarkupConfig {
     static TARGET_FRAMERATE = 30
 
     static get isBatchRendered() {
-        // TODO: Uncomment
-        // if (this.DEBUG_MODE || this.DISABLE_BATCH_RENDERER)
-        //     return false
+        if (this.DEBUG_MODE || this.DISABLE_BATCH_RENDERER)
+            return false
         return true
     }
 }

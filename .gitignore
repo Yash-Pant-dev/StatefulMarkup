@@ -1,3 +1,6 @@
 Stateful\ Markup\ Theory.md
 # tsconfig.json
 dist/types.js
+example/demo.md
+node_modules
+test*.*

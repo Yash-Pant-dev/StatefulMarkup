@@ -1,7 +1,27 @@
-.blueCSS {
-    color: aqua
+.small-dot {
+    display: inline;
 }
 
-.redCSS {
-    color: red  
+.b-example-divider {
+    /* position: relative;
+    bottom: 0px; */
+    width: 100%;
+    height: 3rem;
+    background-color: rgba(0, 0, 0, .1);
+    border: solid rgba(0, 0, 0, .15);
+    border-width: 1px 0;
+    box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15);
+}
+
+.landing-section {
+    height: 96vh;
+}
+.landing-divider {
+    height: 4vh;
+}
+
+.suffix-demo {
+    display: inherit;
+    color:cadetblue;
+    
 }

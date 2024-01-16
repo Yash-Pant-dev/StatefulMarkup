@@ -13,6 +13,10 @@ interface EventDetails {
     readonly [index: string]: string
 }
 
+interface ReconcilliationEvent {
+    [index: string]: string
+}
+
 type SMListener = {id: Id} & ListenerDetails
 interface ListenerDetails {
     selector: QuerySelector,

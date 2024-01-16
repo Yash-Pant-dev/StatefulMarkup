@@ -1,76 +1,45 @@
 const StatefulMarkup = new StatefulMarkupClient("example.js")
-StatefulMarkupConfig.DEBUG_MODE = true
+StatefulMarkupConfig.DEBUG_LOGS = true
 
-
-function fetchName() {
-    setTimeout(() => {
-        StatefulMarkup.publish({ var: "name", val: "Yash" })
-    }, 0)
-    setTimeout(() => {
-        StatefulMarkup.publish({ type: "update_p", var: "gender", val: "male" })
-    }, 0)
-    setTimeout(() => {
-        StatefulMarkup.publish({ var: "list", val: `[{"name": "yash"}]` })
-    }, 0)
-}
-
-function changeColor() {
-    setTimeout(() => {
-        StatefulMarkup.publish({ type: "update", var: "color", val: "blueCSS" })
-    }, 0)
-    setTimeout(() => {
-        eventListenerSetup()
-    }, 0)
-
-    setTimeout(() => {
-        StatefulMarkup.publish({ type: "update", var: "color", val: "redCSS" })
-        setTimeout(() => {
-            StatefulMarkup.publish({ var: "name", val: "YashP" })
-        }, 0)
-        StatefulMarkup.addExternalManipulation(".intro", function (element) {
-            element.innerHTML = "Updated DOM using external manipulation. My name is @name."
-        })
-    }, 2000)
-}
-
-fetchName()
-changeColor()
-
-function eventListenerSetup() {
-    let elements = Array.from(document.getElementsByClassName("blueCSS"))
-    elements.forEach((e) => {
-        e.addEventListener("click", function () {
-            console.log("clickable")
-        })
+suffixUpdateFn = (e) => {
+    StatefulMarkup.update("Suffix", e.target.value)
+    StatefulMarkup.publish({
+        type: 'saveState',
+        selector: '.suffixInput',
+        on: 'input',
     })
 }
 
-function demo() {
-    console.log("clickable")
-}
+// setInterval(() => {
+//     console.log('EJS - ', document.activeElement.outerHTML)
+// }, 1000)
 
-setTimeout(() => {
-    StatefulMarkup.addListener("#redCSS",
-        "click",
-        () => { console.log("Shard mirror") },
-        {})
-}, 0)
+StatefulMarkup.addListener(".suffixInput", "input", suffixUpdateFn, {})
 
-StatefulMarkup.addListener("#male",
-    "click",
-    () => { console.log("conditional listener") },
-    {})
+// let lastActiveElement
+// document.addEventListener('focusin', event => {
+//     lastActiveElement = event.target
+//     console.log("lasAE", lastActiveElement)
+// })
 
-// External Manipulation 
-// Example : Editing the dom.
-StatefulMarkup.addExternalManipulation(".intro", function (element) {
-    element.innerHTML = "Updated DOM using external manipulation. My name is @name."
-})
+// document.addEventListener('RenderEvent', () => {
 
-let a = setInterval(()=> {
-    StatefulMarkupClient._dumpLogs()
-}, 1000)
+//     let inp = document.querySelector('.suffixInput')
+//     let docEle = document.createElement('newEle')
+//     docEle.append(lastActiveElement)
+//     let oldFocus = docEle.querySelector('.suffixInput')
+//     if (oldFocus) {
+//         inp.focus()
+//         inp.setSelectionRange(inp.selectionStart, inp.selectionEnd)
+//     }
+// })
 
-setTimeout(() => {
-    clearInterval(a)
-}, 2000)
+
+
+/* 
+    After render reconcilliation - 
+    Input field: 
+    If focused - 
+        focus
+    
+*/

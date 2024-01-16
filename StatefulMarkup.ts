@@ -188,7 +188,7 @@ class _SM_ValueInjector {
 
                 if (elementAttributeName.startsWith("_sm_")) {
                     let possibleVariable = elementAttributeName.replace("_sm_", "")
-                    if (this._varMap.has(possibleVariable)) {   
+                    if (this._varMap.has(possibleVariable)) {
                         shardAttributeName = this._varMap.get(possibleVariable)
                     }
                 }
@@ -250,7 +250,7 @@ class _SM_ValueInjector {
 
         if (!map)
             map = this._varMap
-        
+
         map.forEach((v, k, m) => {
             const varRegex = new RegExp("@" + k, "g")
             output = output.replace(varRegex, v)
@@ -442,18 +442,23 @@ class _SM_EventBinder {
         const shardList = document.createElement("EventBindingGroup")
 
         transforms.forEach(tfmn => {
-            if (tfmn.shard) {
-                shardList.append(tfmn.shard)
+            if (!tfmn.shard) {
+                tfmn.shard = tfmn.mirror.cloneNode(true) as Element
             }
+            shardList.append(tfmn.shard)
         })
 
         this._listeners.forEach(listener => {
             shardList.querySelectorAll(listener.selector).
-                forEach(DOMElement => (DOMElement.addEventListener(
-                    listener.onEvent,
-                    listener.callback,
-                    listener.optionalArgs
-                )))
+                forEach(DOMElement => {
+
+                    DOMElement.addEventListener(
+                        listener.onEvent,
+                        listener.callback,
+                        listener.optionalArgs
+                    )
+                }
+                )
         })
 
         _SM_Log.log(1, "%c  EventBinder update")
@@ -566,6 +571,7 @@ class _SM_Engine {
             }
         }
 
+
         if (this.rendererIntrinsics.phase === 'start') {
             let tfmns = _SM_Transforms.transforms
             _SM_Log.log(3, "%c  StartPhase")
@@ -596,8 +602,8 @@ class _SM_Engine {
                 _SM_Log.log(2, "%c  Impossible Render phase.")
             }
 
-            _SM_Transforms.update(tfmns)
-            this.rendererIntrinsics.phase = 'idle'
+            _SM_Reconcilliation.saveState()
+            _SM_Transforms.update(tfmns);
         }
 
         /* 
@@ -609,15 +615,20 @@ class _SM_Engine {
             let subscribers = _SM_Manager.refreshSubs()
             let tfmns = _SM_Transforms.createTransforms(subscribers)
             _SM_ExternalJS.update(tfmns)
-            tfmns = _SM_ValueInjector.update(tfmns)
-            tfmns = _SM_ConstructInjector.update(tfmns)
+            let t1 = _SM_ValueInjector.update(tfmns, true)
+            _SM_ConstructInjector.update(t1)
             tfmns = _SM_EventBinder.update(tfmns)
+
+            _SM_Reconcilliation.saveState()
             _SM_Transforms.update(tfmns)
-            this.rendererIntrinsics.phase = 'idle'
         }
 
         this._observedOperations.reset()
+        _SM_Reconcilliation.reconcile()
+        
         _SM_Log.log(1, '%c  Render phase finished.')
+        document.dispatchEvent(new Event('RenderEvent'))
+        this.rendererIntrinsics.phase = 'idle'
     }
 
     static _observedOperations = {
@@ -637,6 +648,89 @@ class _SM_Engine {
         phase: 'init',
         frameTarget: StatefulMarkupConfig.TARGET_FRAMERATE
     }
+}
+
+class _SM_Reconcilliation {
+
+    static saveState() {
+
+        let unprocessedEvents: Array<SMEvent> = []
+        let reconcilliationEvents: Array<ReconcilliationEvent> = []
+
+        _SM_Manager.events.forEach(evt => {
+            if (evt.event.type !== 'saveState') {
+                unprocessedEvents.push(evt)
+            }
+            else {
+                reconcilliationEvents.push(evt.event)
+            }
+        })
+
+        _SM_Manager.events = unprocessedEvents
+
+        reconcilliationEvents.forEach((evt) => {
+            switch (evt.on) {
+                case 'input':
+                    this.saveInputState(evt)
+                    break
+                default:
+                    _SM_Log.log(2, 'Reconcilliation not defined for type - ' + evt.on)
+            }
+        })
+    }
+
+    static reconcile() {
+
+        this._savedStates.forEach((save) => {
+
+            switch (save.on) {
+
+                case 'input':
+                    this.reconcileInputState(save)
+                    break;
+                default:
+                    _SM_Log.log(2, 'Reconcile not implemented for - ' + save.selector)
+            }
+        })
+
+        this._savedStates = []
+    }
+
+    static reconcileInputState(save: ReconcilliationEvent) {
+
+        let element = document.querySelector(save.selector)
+
+        if (element === null)
+            return _SM_Log.log(2, 'Cannot find element to reconcile - ' + save.selector)
+
+        if (save.wasFocused) {
+            (element as HTMLElement).focus()
+        }
+
+        // @ts-ignore
+        element.setSelectionRange(save.selectionStart, save.selectionEnd)
+        console.log('RIS - ', save.selectionStart, save.selectionEnd)
+    }
+
+    static saveInputState(evt: ReconcilliationEvent) {
+        let currentState: ReconcilliationEvent = { on: 'input', selector: evt.selector }
+        let selector = evt.selector
+        let element = document.querySelector(selector)
+
+        if (element === null)
+            return _SM_Log.log(2, 'Save state element not found, selector: ' + selector)
+
+        currentState.wasFocused = (document.activeElement === element) + ""
+        // console.log('SIS - AE', (document.activeElement as any).outerHTML)
+        // @ts-ignore
+        currentState.selectionStart = element.selectionStart
+        // @ts-ignore
+        currentState.selectionEnd = element.selectionEnd
+        console.log('SIS - ', currentState, (element as any).outerHTML )
+        this._savedStates.push(currentState)
+    }
+
+    private static _savedStates: Array<EventDetails> = []
 }
 
 class _SM_Log {

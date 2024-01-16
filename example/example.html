@@ -1,51 +1,87 @@
 <!doctype html>
-<html>
+<html data-bs-theme="dark">
 
 <head>
     <title>
-        Demo StatefulMarkup
+        Stateful Markup
     </title>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+
+    <script src="../dist/StatefulMarkupClient.js"></script>
 </head>
 
-<script src="../dist/StatefulMarkupClient.js"></script>
 <script src="./components/auth.js"></script>
 <script src="./components/footer.js"></script>
-<script src="example.js"></script>
+<script defer src="example.js"></script>
 <script defer src="../dist/StatefulMarkup.js"></script>
 
 <link rel="stylesheet" href="example.css">
 
-
-<!-- This is an example page with two divs functioning as markupUI components -->
-
 <body>
-    <div>
-        Some Text Here
-    </div>
-    <div class="@color _sm intro" id="@color" _SM_color>
-        <!-- Any div with a class name _sm will hand over its functionality to
-        the the framework!  -->
-        My name is: @name
-    </div>
+    <main>
+        <!-- Landing Cover -->
 
-    <div class="_sm gender">
-        I am a @name
-        @_for(@list)
-        @{
-            <div id="male">@_x.name</div>
-            @_if("@_x.name" !== "yash")
-            @{
-                <div>Male!</div>
-            }@
-        }@
+        <div class="px-4 pt-5 text-center landing-section py-auto my-auto">
+            <img class="d-block mx-auto img-fluid mt-5" src="assets/Logo2.png" alt="">
+            <h1 class="display-4 fw-bold text-body-emphasis">STATEFUL <div class="small-dot text-muted">•</div> MARKUP
+            </h1>
+            <div class="col-lg-6 mx-auto">
+                <p class="h2 mb-4 pt-5 pb-2">
+                    Extend your Markup to support <u>Persisting State, Conditional Rendering & Loops, Components,
+                        Batched rendering</u> and more!
+                </p>
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                    <button type="button" class="btn btn-dark btn-lg px-4 gap-3">⊱ Get CDN Link</button>
+                    <button type="button" class="btn btn-dark btn-lg px-4">⊱ Github</button>
+                </div>
+            </div>
+        </div>
+        <div class="landing-divider text-center p-1">
+            <img src="assets/DownwardPointer.png" class="mx-auto" height="100%">
+        </div>
 
-    </div>
+        <!-- Variable Injection -->
 
-    <div class="_sm footer">
-        @_if("@name" === "YashP")@{
-            @@footer
-        }@
-    </div>
+        <div class="px-4 pt-5 text-center landing-section py-auto my-auto">
+            <h1 class="display-4 fw-bold text-body-emphasis">Reactivity with
+                <div class="suffix-demo _sm">@Suffix! </div>
+            </h1>
+            <div class="col-lg-6 mx-auto">
+                <p class="h2 mb-4 pt-5 pb-2 _sm">
+                    Just add a variable with
+                <div class="suffix-demo _sm">@Suffix! </div>
+                and watch it update <u>EVERYWHERE</u> at once
+                </p>
+                <div class="h4">Just a line of JS needed!</div>
+                <div class="d-grid gap-1 d-sm-flex justify-content-sm-center py-4 h2">
+                    StatefulMarkup.update("@Suffix",
+                    <div class="mb-3">
+                        <input type="text" class="form-control suffixInput _sm" name="" id="" placeholder=""
+                            value="@Suffix" />
+                        <small id="helpId" class="form-text text-muted">Write your name here ↑</small>
+                    </div>
+                    )
 
+                </div>
+            </div>
+        </div>
+        <div class="landing-divider text-center p-1">
+            <img src="assets/DownwardPointer.png" class="mx-auto" height="100%">
+        </div>
+
+        <!-- Variable Injection Extra -->
+
+
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+        crossorigin="anonymous"></script>
 </body>
+
 </html>
