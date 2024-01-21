@@ -11,15 +11,15 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
 
-    <script src="../dist/StatefulMarkupClient.js"></script>
+    <script src="dist/StatefulMarkupClient.js"></script>
 </head>
 
-<script src="./components/dashboard.js"></script>
-<script src="./components/footer.js"></script>
-<script defer src="example.js"></script>
-<script defer src="../dist/StatefulMarkup.js"></script>
+<script src="example/components/dashboard.js"></script>
+<script src="example/components/footer.js"></script>
+<script defer src="example/index.js"></script>
+<script defer src="dist/StatefulMarkup.js"></script>
 
-<link rel="stylesheet" href="example.css">
+<link rel="stylesheet" href="example/index.css">
 
 
 <!-- <body style="opacity: 0;"> -->
@@ -28,7 +28,7 @@
         <!-- Landing Cover -->
         <div class="landing-section">
             <div class="px-4 pt-5 text-center  py-auto my-auto">
-                <img class="d-block mx-auto img-fluid mt-5" src="assets/Logo2.png" alt="">
+                <img class="d-block mx-auto img-fluid mt-5" src="example/assets/Logo2.png" alt="">
                 <h1 class="display-4 fw-bold text-body-emphasis">STATEFUL <div class="small-dot text-muted">•</div>
                     MARKUP
                 </h1>
@@ -48,7 +48,7 @@
         </div>
 
         <div class="landing-divider text-center p-1">
-            <img src="assets/DownwardPointer.png" class="mx-auto" height="100%">
+            <img src="example/assets/DownwardPointer.png" class="mx-auto" height="100%">
         </div>
 
         <!-- Variable Injection -->
@@ -220,7 +220,7 @@
                 <div>
                   <h3 class="fs-2 text-body-emphasis display-5">Batched Rendering</h3>
                   <p>Maintain 60 fps by updating in batches, improving performance. Set a tailored framerate for your users device.</p>
-                  <a href="#" class="btn btn-primary">
+                  <a href="#" class="btn btn-success">
                     Read More
                   </a>
                 </div>
@@ -234,7 +234,7 @@
                   <p>The framework is built to support new constructs, plugins to support your use-case without needing to fight against the code.
                     The API tries to be as clear as unambiguous as possible.
                   </p>
-                  <a href="#" class="btn btn-primary">
+                  <a href="#" class="btn btn-success">
                     Read More
                   </a>
                 </div>
@@ -246,7 +246,7 @@
                 <div>
                   <h3 class="fs-2 text-body-emphasis display-5">Wasteless DOM updates</h3>
                   <p>Stateless Markup only remakes those DOM trees that get affected by any given set of updates, so there are no wasted CPU cyles.</p>
-                  <a href="#" class="btn btn-primary">
+                  <a href="#" class="btn btn-success">
                     Read More
                   </a>
                 </div>
