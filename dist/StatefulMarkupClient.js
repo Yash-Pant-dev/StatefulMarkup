@@ -77,6 +77,9 @@ class StatefulMarkupClient {
             _SM_Engine.inform(operation);
         }
     }
+    currentState(variable) {
+        return _SM_ValueInjector._getMapping().get(variable);
+    }
     static set eventsBuffer(newEventsBuffer) {
         this._eventsBuffer = newEventsBuffer;
     }
@@ -119,15 +122,17 @@ StatefulMarkupClient._listenerId = 1;
 StatefulMarkupClient._statelessUpdates = [];
 StatefulMarkupClient._updateId = 1;
 StatefulMarkupClient.INIT_TIME = Date.now();
+/*
+    Contains configurable variables for framework behaviour, mostly useful for debugging.
+*/
 class StatefulMarkupConfig {
     static get isBatchRendered() {
-        if (this.DEBUG_MODE || this.DISABLE_BATCH_RENDERER)
+        if (this.DISABLE_BATCH_RENDERER)
             return false;
         return true;
     }
 }
-StatefulMarkupConfig.DEBUG_MODE = true;
-StatefulMarkupConfig.REFRESH_SUBS_ALWAYS = false; // Refresh subs after every update.
+StatefulMarkupConfig.DEBUG_MODE = false;
 StatefulMarkupConfig.DEBUG_LOGS = false; // Verbose logging.
 StatefulMarkupConfig.DISABLE_BATCH_RENDERER = false; // If false, updates are not batched for performance.
-StatefulMarkupConfig.TARGET_FRAMERATE = 30;
+StatefulMarkupConfig.TARGET_FRAMERATE = 60;

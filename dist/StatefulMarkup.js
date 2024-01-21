@@ -6,16 +6,16 @@ var _a;
 const _SM_Version = 0.1;
 (function () {
     if (typeof StatefulMarkupClient !== typeof Function) {
-        _SM_Log.log(2, "%c  SMClient must be first script to load.");
+        _SM_Log.log(2, '%c  SMClient must be first script to load.');
     }
-    addEventListener("load", (e) => {
-        _SM_Initialization.loadPersistingData();
+    addEventListener('load', (e) => {
+        _SM_Initialization.loadPersistentData();
         _SM_Engine.renderer();
     });
 })();
-const persistKeyword = "_SM_Persist_";
+const persistKeyword = '_SM_Persist_';
 class _SM_Initialization {
-    static loadPersistingData() {
+    static loadPersistentData() {
         let persistingEvents = [];
         for (let i = 0; i < localStorage.length; i++) {
             let key = localStorage.key(i);
@@ -24,7 +24,7 @@ class _SM_Initialization {
                 persistingEvents.push({
                     id: StatefulMarkupClient._eventId++,
                     event: {
-                        type: "update_p",
+                        type: 'update_p',
                         var: key.substring(persistKeyword.length),
                         val: val
                     }
@@ -68,7 +68,7 @@ class _SM_Manager {
         so that it can re-subscribe or needs to track a newly subscribed element.
     */
     static refreshSubs() {
-        const SM_CLASSNAME = "_sm";
+        const SM_CLASSNAME = '_sm';
         return this._subs = Array.from(document.getElementsByClassName(SM_CLASSNAME));
     }
 }
@@ -117,7 +117,7 @@ class _SM_Transforms {
             }
             tfmn.shard = null;
         });
-        _SM_Log.log(1, "%c  Transforms update");
+        _SM_Log.log(1, '%c  Transforms update');
         return transforms;
     }
 }
@@ -145,9 +145,9 @@ class _SM_ValueInjector {
             for (let elementAttributeName of element.getAttributeNames()) {
                 let shardAttributeName = elementAttributeName;
                 let shardAttributeValue = element.getAttribute(elementAttributeName);
-                if (elementAttributeName.startsWith("_sm_")) {
-                    let possibleVariable = elementAttributeName.replace("_sm_", "");
-                    if (this._varMap.has(possibleVariable)) {
+                if (elementAttributeName.startsWith('_sm_')) {
+                    let possibleVariable = elementAttributeName.substring(4);
+                    if (this._varMap.get(possibleVariable)) {
                         shardAttributeName = this._varMap.get(possibleVariable);
                     }
                 }
@@ -164,7 +164,7 @@ class _SM_ValueInjector {
             else
                 newTransforms.push(tfmn);
         });
-        _SM_Log.log(1, "%c  Value Injector update");
+        _SM_Log.log(1, '%c  Value Injector update');
         return newTransforms;
     }
     static _mappingUpdater() {
@@ -172,11 +172,11 @@ class _SM_ValueInjector {
         let isMappingUpdated = false;
         _SM_Manager.events.forEach(evt => {
             if (evt.event.type === undefined
-                || evt.event.type === "update"
-                || evt.event.type === "update_p"
-                || evt.event.type === "component") {
-                if (evt.event.type === "update_p") {
-                    localStorage.setItem(persistKeyword + evt.event.var, evt.event.value);
+                || evt.event.type === 'update'
+                || evt.event.type === 'update_p'
+                || evt.event.type === 'component') {
+                if (evt.event.type === 'update_p') {
+                    localStorage.setItem(persistKeyword + evt.event.var, evt.event.val);
                 }
                 if (this._varMap.get(evt.event.var) != evt.event.val) {
                     isMappingUpdated = true;
@@ -196,10 +196,22 @@ class _SM_ValueInjector {
     */
     static _replacer(input, map) {
         let output = input;
+        this._markupConversions.forEach((v, k, m) => {
+            const varRegex = new RegExp(k, 'g');
+            output = output.replace(varRegex, v);
+        });
         if (!map)
             map = this._varMap;
+        // Sort variable map so that longest matching variables replace instead of shortest 
+        map = new Map([...map.entries()].sort((a, b) => {
+            if (a[0].length === b[0].length)
+                return 0;
+            if (a[0].length < b[0].length)
+                return 1;
+            return -1;
+        }));
         map.forEach((v, k, m) => {
-            const varRegex = new RegExp("@" + k, "g");
+            const varRegex = new RegExp('@' + k, 'g');
             output = output.replace(varRegex, v);
         });
         return output;
@@ -211,6 +223,10 @@ class _SM_ValueInjector {
         return this._varMap;
     }
 }
+_SM_ValueInjector._markupConversions = new Map([
+    ["&lt;", "<"],
+    ["&gt;", ">"],
+]);
 _SM_ValueInjector._varMap = new Map();
 /*
     Construct Injector -
@@ -219,11 +235,13 @@ _SM_ValueInjector._varMap = new Map();
 class _SM_ConstructInjector {
     static update(transforms) {
         transforms.forEach(tfmn => {
+            if (!tfmn.shard)
+                [tfmn] = _SM_Transforms.shardCurrentMirror([tfmn]);
             this.content = tfmn.shard.innerHTML;
             this.parseConstructs();
             tfmn.shard.innerHTML = this.content;
         });
-        _SM_Log.log(1, "%c  Construct Injector update");
+        _SM_Log.log(1, '%c  Construct Injector update');
         return transforms;
     }
     // Identifies and evaluates all constructs in code.
@@ -234,7 +252,7 @@ class _SM_ConstructInjector {
         }
     }
     static containsConstruct() {
-        return this.content.includes("@_");
+        return this.content.includes('@_');
     }
     // Find the @_for/if construct, along with start and end brackets of body
     static _getMarkers() {
@@ -242,17 +260,17 @@ class _SM_ConstructInjector {
         let balance = 0;
         for (let i = 0; i < this.content.length - 1; i++) {
             let chars = this.content[i] + this.content[i + 1];
-            if (chars === "@_") {
+            if (chars === '@_') {
                 if (start === -1) {
                     start = i;
                 }
             }
-            else if (chars === "@{") {
+            else if (chars === '@{') {
                 balance++;
                 if (bodyStart === -1)
                     bodyStart = i;
             }
-            else if (chars === "}@") {
+            else if (chars === '}@') {
                 balance--;
                 if (balance === 0) {
                     bodyEnd = i;
@@ -261,7 +279,7 @@ class _SM_ConstructInjector {
             }
         }
         if (Math.min(start, bodyStart, bodyEnd) === -1) {
-            throw Error("Insufficient markers.");
+            throw Error('Insufficient markers.');
         }
         return [start, bodyStart, bodyEnd];
     }
@@ -275,7 +293,7 @@ class _SM_ConstructInjector {
             this._ifInjection(start, retStart, retEnd);
         }
         else
-            throw Error("Invalid constructType");
+            throw Error('Invalid constructType');
     }
     static _getConstructTag(idx) {
         let constructName = '';
@@ -292,7 +310,7 @@ class _SM_ConstructInjector {
                     break;
             }
         }
-        throw Error("No construct found");
+        throw Error('No construct found');
     }
     /*
         Injects variables to @_x.properties collected from the array of objects in the
@@ -303,15 +321,21 @@ class _SM_ConstructInjector {
         let header = this.content.substring(start + forTagLen, retStart).trim();
         header = header.substring(1, header.length - 1);
         let collection = JSON.parse(header);
-        let curExpansion = this.content.substring(retStart + 2, retEnd);
+        let originalStructure = this.content.substring(retStart + 2, retEnd);
         let bodyExpansion = '';
         collection.forEach(objectItem => {
             let objectData = new Map();
             for (const prop in objectItem) {
-                objectData.set("_x." + prop, objectItem[prop]);
+                objectData.set('x_.' + prop, objectItem[prop]);
             }
-            curExpansion = _SM_ValueInjector._replacer(curExpansion, objectData);
-            bodyExpansion += curExpansion;
+            /*
+                Exposing each header element directly is useful if a simple array is passed, however then any undefined property
+                access turns into [object Object].
+                If a user wishes to pass in a direct array, he would instead have to create an object from the element,
+                and then access it through named properties.
+            */
+            objectData.set('x_. ', objectItem);
+            bodyExpansion += _SM_ValueInjector._replacer(originalStructure, objectData);
         });
         let modifiedContent = this.content.substring(0, start)
             + bodyExpansion
@@ -322,7 +346,14 @@ class _SM_ConstructInjector {
         const forTagLen = 4; // @_for
         let header = this.content.substring(start + forTagLen, retStart).trim();
         header = header.substring(1, header.length - 1);
-        let isConditionTrue = eval(header);
+        console.log(header);
+        let isConditionTrue = false;
+        try {
+            isConditionTrue = eval(header);
+        }
+        catch (e) {
+            _SM_Log.log(2, 'If code error');
+        }
         let bodyExpansion = '';
         if (isConditionTrue)
             bodyExpansion = this.content.substring(retStart + 2, retEnd);
@@ -344,7 +375,7 @@ class _SM_EventBinder {
         return StatefulMarkupClient.eventListeners;
     }
     static update(transforms) {
-        const shardList = document.createElement("EventBindingGroup");
+        const shardList = document.createElement('EventBindingGroup');
         transforms.forEach(tfmn => {
             if (!tfmn.shard) {
                 tfmn.shard = tfmn.mirror.cloneNode(true);
@@ -357,7 +388,7 @@ class _SM_EventBinder {
                 DOMElement.addEventListener(listener.onEvent, listener.callback, listener.optionalArgs);
             });
         });
-        _SM_Log.log(1, "%c  EventBinder update");
+        _SM_Log.log(1, '%c  EventBinder update');
         return transforms;
     }
     // Should be used in exceptional cases only.
@@ -382,7 +413,7 @@ class _SM_ExternalJS {
     static update(transforms) {
         const newTransforms = [];
         transforms.forEach(tfmn => {
-            const elementDocument = document.createElement("ExternalManipulationGroup");
+            const elementDocument = document.createElement('ExternalManipulationGroup');
             elementDocument.append(tfmn.element);
             let wasUpdated = false;
             this._statelessUpdates.forEach(fn => {
@@ -436,12 +467,14 @@ class _SM_Engine {
     }
     static renderer() {
         if (this.rendererIntrinsics.phase === 'idle') {
-            if (StatefulMarkupConfig.isBatchRendered) {
+            /* A setTimeout is often of the order of ms, so batch rendering is irrelevant if target
+             framerate is greater than 120ms */
+            if (StatefulMarkupConfig.isBatchRendered && this.rendererIntrinsics.targetFramerate <= 144) {
                 this.rendererIntrinsics.phase = 'wait';
                 setTimeout(() => {
                     this.rendererIntrinsics.phase = 'start';
                     this.renderer();
-                }, 1000 / this.rendererIntrinsics.frameTarget);
+                }, 1000 / this.rendererIntrinsics.targetFramerate);
                 return;
             }
             else {
@@ -449,10 +482,10 @@ class _SM_Engine {
             }
         }
         if (this.rendererIntrinsics.phase === 'start') {
+            _SM_Log.log(3, '%c  StartPhase');
             let tfmns = _SM_Transforms.transforms;
-            _SM_Log.log(3, "%c  StartPhase");
             if (this._observedOperations.ExtStatelessUpdate) {
-                _SM_Log.log(3, "%c  Ext Manip");
+                _SM_Log.log(3, '%c  Ext Manip');
                 let t1 = _SM_ExternalJS.update(tfmns);
                 if (!this._observedOperations.PublishEvent) {
                     tfmns = _SM_ValueInjector.update(t1, true);
@@ -463,18 +496,18 @@ class _SM_Engine {
                 tfmns = _SM_EventBinder.update(tfmns);
             }
             else if (this._observedOperations.PublishEvent) {
-                _SM_Log.log(3, "%c VI");
+                _SM_Log.log(3, '%c VI');
                 tfmns = _SM_ValueInjector.update(tfmns);
                 tfmns = _SM_ConstructInjector.update(tfmns);
                 tfmns = _SM_EventBinder.update(tfmns);
             }
             else if (this._observedOperations.EventBindingUpdate) {
-                _SM_Log.log(3, "%c Skipped VI, CE");
+                _SM_Log.log(3, '%c Skipped VI, CE');
                 tfmns = _SM_Transforms.shardCurrentMirror(tfmns);
                 tfmns = _SM_EventBinder.update(tfmns);
             }
             else {
-                _SM_Log.log(2, "%c  Impossible Render phase.");
+                _SM_Log.log(2, '%c  Impossible Render phase.');
             }
             _SM_Reconcilliation.saveState();
             _SM_Transforms.update(tfmns);
@@ -483,21 +516,29 @@ class _SM_Engine {
             An init phase indicates the stage before the very first render.
         */
         if (this.rendererIntrinsics.phase === 'init') {
-            _SM_Log.log(3, "%c  init phase");
+            _SM_Log.log(3, '%c  init phase');
             let subscribers = _SM_Manager.refreshSubs();
             let tfmns = _SM_Transforms.createTransforms(subscribers);
             _SM_ExternalJS.update(tfmns);
-            let t1 = _SM_ValueInjector.update(tfmns, true);
-            _SM_ConstructInjector.update(t1);
-            tfmns = _SM_EventBinder.update(tfmns);
+            _SM_ValueInjector.update(tfmns, true);
+            _SM_ConstructInjector.update(tfmns);
+            _SM_EventBinder.update(tfmns);
             _SM_Reconcilliation.saveState();
             _SM_Transforms.update(tfmns);
         }
         this._observedOperations.reset();
         _SM_Reconcilliation.reconcile();
-        _SM_Log.log(1, '%c  Render phase finished.');
+        if (this.rendererIntrinsics.phase === 'init')
+            _a.showSubscribers();
         document.dispatchEvent(new Event('RenderEvent'));
+        _SM_Log.log(1, '%c  Render phase finished.');
+        this.rendererIntrinsics.frameNumber++;
         this.rendererIntrinsics.phase = 'idle';
+    }
+    static showSubscribers() {
+        document.querySelectorAll('._sm_HideUntilReady').forEach((element) => {
+            element.style.opacity = '1';
+        });
     }
 }
 _a = _SM_Engine;
@@ -513,35 +554,35 @@ _SM_Engine._observedOperations = {
 };
 _SM_Engine.rendererIntrinsics = {
     phase: 'init',
-    frameTarget: StatefulMarkupConfig.TARGET_FRAMERATE
+    targetFramerate: StatefulMarkupConfig.TARGET_FRAMERATE,
+    frameNumber: 1
 };
 class _SM_Reconcilliation {
     static saveState() {
         let unprocessedEvents = [];
-        let reconcilliationEvents = [];
         _SM_Manager.events.forEach(evt => {
             if (evt.event.type !== 'saveState') {
                 unprocessedEvents.push(evt);
             }
             else {
-                reconcilliationEvents.push(evt.event);
+                this._savedTargets.push(evt.event);
             }
         });
         _SM_Manager.events = unprocessedEvents;
-        reconcilliationEvents.forEach((evt) => {
+        this._savedTargets.forEach((evt) => {
             switch (evt.on) {
-                case 'input':
+                case 'input-text':
                     this.saveInputState(evt);
                     break;
                 default:
-                    _SM_Log.log(2, 'Reconcilliation not defined for type - ' + evt.on);
+                    _SM_Log.log(2, 'Saving state not defined for type - ' + evt.on);
             }
         });
     }
     static reconcile() {
         this._savedStates.forEach((save) => {
             switch (save.on) {
-                case 'input':
+                case 'input-text':
                     this.reconcileInputState(save);
                     break;
                 default:
@@ -550,33 +591,34 @@ class _SM_Reconcilliation {
         });
         this._savedStates = [];
     }
-    static reconcileInputState(save) {
-        let element = document.querySelector(save.selector);
-        if (element === null)
-            return _SM_Log.log(2, 'Cannot find element to reconcile - ' + save.selector);
-        if (save.wasFocused) {
-            element.focus();
-        }
-        // @ts-ignore
-        element.setSelectionRange(save.selectionStart, save.selectionEnd);
-        console.log('RIS - ', save.selectionStart, save.selectionEnd);
-    }
     static saveInputState(evt) {
-        let currentState = { on: 'input', selector: evt.selector };
+        let currentState = { on: 'input-text', selector: evt.selector };
         let selector = evt.selector;
         let element = document.querySelector(selector);
         if (element === null)
             return _SM_Log.log(2, 'Save state element not found, selector: ' + selector);
-        currentState.wasFocused = (document.activeElement === element) + "";
-        // console.log('SIS - AE', (document.activeElement as any).outerHTML)
+        currentState.wasFocused = (document.activeElement === element) + '';
         // @ts-ignore
         currentState.selectionStart = element.selectionStart;
         // @ts-ignore
         currentState.selectionEnd = element.selectionEnd;
-        console.log('SIS - ', currentState, element.outerHTML);
         this._savedStates.push(currentState);
     }
+    static reconcileInputState(save) {
+        let element = document.querySelector(save.selector);
+        if (element === null)
+            return _SM_Log.log(2, 'Cannot find element to reconcile - ' + save.selector);
+        if (save.wasFocused === 'true') {
+            element.focus();
+        }
+        // @ts-ignore
+        element.setSelectionRange(save.selectionStart, save.selectionEnd);
+    }
+    static __clearTargets() {
+        this._savedTargets = [];
+    }
 }
+_SM_Reconcilliation._savedTargets = [];
 _SM_Reconcilliation._savedStates = [];
 class _SM_Log {
     static log(severity, message) {

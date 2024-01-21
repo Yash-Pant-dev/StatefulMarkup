@@ -11,6 +11,7 @@
     The main purpose of the Client is to provide a minimal client to be loaded first,
     and collect all events & listeners for the SM.js file to handle later.
 */
+
 class StatefulMarkupClient {
 
     constructor(...args: string[]) {
@@ -93,6 +94,10 @@ class StatefulMarkupClient {
         }
     }
 
+    currentState(variable: string) {
+        return _SM_ValueInjector._getMapping().get(variable)
+    }
+
     static set eventsBuffer(newEventsBuffer) {
         this._eventsBuffer = newEventsBuffer
     }
@@ -120,6 +125,8 @@ class StatefulMarkupClient {
     private static _statelessUpdates: Array<SMExterns> = []
     private static _updateId = 1
 
+    
+
     static INIT_TIME = Date.now()
     static _dumpLogs() {
         console.groupCollapsed("StatefulMarkup Logs - t elapsed:", (Date.now() - this.INIT_TIME) / 1000)
@@ -142,16 +149,18 @@ class StatefulMarkupClient {
     }
 }
 
+/* 
+    Contains configurable variables for framework behaviour, mostly useful for debugging.
+*/
 class StatefulMarkupConfig {
-    static DEBUG_MODE = true
+    static DEBUG_MODE = false
 
-    static REFRESH_SUBS_ALWAYS = false // Refresh subs after every update.
     static DEBUG_LOGS = false // Verbose logging.
     static DISABLE_BATCH_RENDERER = false // If false, updates are not batched for performance.
-    static TARGET_FRAMERATE = 30
+    static TARGET_FRAMERATE = 60
 
     static get isBatchRendered() {
-        if (this.DEBUG_MODE || this.DISABLE_BATCH_RENDERER)
+        if (this.DISABLE_BATCH_RENDERER)
             return false
         return true
     }

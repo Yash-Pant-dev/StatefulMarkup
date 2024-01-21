@@ -1,8 +1,8 @@
 const AuthComponent = {
-    name: "auth",
+    name: 'Auth',
     template: `
     <div>
-    Username - @name
+    Auth Component
     </div>
     `
 }

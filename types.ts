@@ -17,6 +17,10 @@ interface ReconcilliationEvent {
     [index: string]: string
 }
 
+interface RecTarget {
+    [key: string]: string
+}
+
 type SMListener = {id: Id} & ListenerDetails
 interface ListenerDetails {
     selector: QuerySelector,

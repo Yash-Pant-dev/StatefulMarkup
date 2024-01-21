@@ -1,3 +1,9 @@
+:root {
+    --primary: rgba(74, 141, 203, 1);
+    --secondary: chocolate;
+    --green: #198754
+}
+
 .small-dot {
     display: inline;
 }
@@ -16,12 +22,30 @@
 .landing-section {
     height: 96vh;
 }
+
 .landing-divider {
     height: 4vh;
 }
 
-.suffix-demo {
-    display: inherit;
-    color:cadetblue;
-    
+.highlight-block {
+    color: var(--primary);
+}
+
+.highlight-inline {
+    /* display: inline-flex; */
+    display: inline;
+    color: var(--primary);
+}
+
+.cond-1 {
+    color: var(--secondary)
+}
+
+.cond-2 {
+    display: inline;
+    color: var(--secondary)
+}
+
+.list-group-item-action:nth-child(odd) {
+    color:var(--green);
 }

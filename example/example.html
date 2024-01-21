@@ -14,69 +14,245 @@
     <script src="../dist/StatefulMarkupClient.js"></script>
 </head>
 
-<script src="./components/auth.js"></script>
+<script src="./components/dashboard.js"></script>
 <script src="./components/footer.js"></script>
 <script defer src="example.js"></script>
 <script defer src="../dist/StatefulMarkup.js"></script>
 
 <link rel="stylesheet" href="example.css">
 
-<body>
+
+<!-- <body style="opacity: 0;"> -->
+<body class="_sm_HideUntilReady" style="opacity: 0;">
     <main>
         <!-- Landing Cover -->
-
-        <div class="px-4 pt-5 text-center landing-section py-auto my-auto">
-            <img class="d-block mx-auto img-fluid mt-5" src="assets/Logo2.png" alt="">
-            <h1 class="display-4 fw-bold text-body-emphasis">STATEFUL <div class="small-dot text-muted">•</div> MARKUP
-            </h1>
-            <div class="col-lg-6 mx-auto">
-                <p class="h2 mb-4 pt-5 pb-2">
-                    Extend your Markup to support <u>Persisting State, Conditional Rendering & Loops, Components,
-                        Batched rendering</u> and more!
-                </p>
-                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-                    <button type="button" class="btn btn-dark btn-lg px-4 gap-3">⊱ Get CDN Link</button>
-                    <button type="button" class="btn btn-dark btn-lg px-4">⊱ Github</button>
+        <div class="landing-section">
+            <div class="px-4 pt-5 text-center  py-auto my-auto">
+                <img class="d-block mx-auto img-fluid mt-5" src="assets/Logo2.png" alt="">
+                <h1 class="display-4 fw-bold text-body-emphasis">STATEFUL <div class="small-dot text-muted">•</div>
+                    MARKUP
+                </h1>
+                <div class="col-lg-6 mx-auto">
+                    <p class="h2 mb-4 pt-5 pb-2">
+                        Extend your Markup to support <u class="highlight-inline">Persisting State, Conditional
+                            Rendering & Loops, Components,
+                            Batched rendering</u> and more!
+                    </p>
+                    <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                        <button type="button" class="btn btn-dark btn-lg px-4 gap-3">⊱ Get CDN Link</button>
+                        <button type="button" class="btn btn-dark btn-lg px-4">⊱ Github</button>
+                        <button type="button" class="btn btn-success btn-lg px-4">⊱ Docs</button>
+                    </div>
                 </div>
             </div>
         </div>
+
         <div class="landing-divider text-center p-1">
             <img src="assets/DownwardPointer.png" class="mx-auto" height="100%">
         </div>
 
         <!-- Variable Injection -->
+        <div class="container justify-content-center align-items-center">
+            <div class="position-relative my-5 p-5 text-center text-muted bg-body border border-dashed rounded-5">
+                <button type="button" class="position-absolute top-0 end-0 p-3 m-3 bg-opacity-10 rounded-pill"
+                    aria-label="Read More">Read More</button>
+                <h1 class="text-body-emphasis display-2 fw-bolder">Reactivity with <div class="_sm highlight-block">
+                        @Suffix!</div>
+                </h1>
 
-        <div class="px-4 pt-5 text-center landing-section py-auto my-auto">
-            <h1 class="display-4 fw-bold text-body-emphasis">Reactivity with
-                <div class="suffix-demo _sm">@Suffix! </div>
-            </h1>
-            <div class="col-lg-6 mx-auto">
-                <p class="h2 mb-4 pt-5 pb-2 _sm">
-                    Just add a variable with
-                <div class="suffix-demo _sm">@Suffix! </div>
-                and watch it update <u>EVERYWHERE</u> at once
-                </p>
-                <div class="h4">Just a line of JS needed!</div>
-                <div class="d-grid gap-1 d-sm-flex justify-content-sm-center py-4 h2">
-                    StatefulMarkup.update("@Suffix",
+                <blockquote class="blockquote pt-5 fw-light fs-4">Change state using the SM.Update() function. The
+                    framework re-renders all affected nodes containing
+                    <div class="_sm highlight-inline fw-bold">@Suffix</div>, and the updates can even be persistent
+                    across
+                    refreshes!
+                </blockquote>
+                <div class="pt-2 pb-2 fs-4 lead">A single line of JS is all it needs - </div>
+
+                <div class="d-grid gap-1 d-sm-flex justify-content-sm-center pt-1 fs-3 ">
+                    SM.update("@Suffix",
                     <div class="mb-3">
-                        <input type="text" class="form-control suffixInput _sm" name="" id="" placeholder=""
-                            value="@Suffix" />
-                        <small id="helpId" class="form-text text-muted">Write your name here ↑</small>
+                        <input type="text" class="form-control suffixInput _sm" id="" placeholder=""
+                            aria-describedby=" suffix-demo" value="@Suffix" />
+                        <small id="suffix-demo" class="form-text fs-5">Write your name ↑</small>
                     </div>
                     )
-
                 </div>
             </div>
         </div>
-        <div class="landing-divider text-center p-1">
-            <img src="assets/DownwardPointer.png" class="mx-auto" height="100%">
+
+        <!-- Conditionals -->
+        <div class="container justify-content-center align-items-center">
+            <div class="position-relative my-5 p-5 text-center text-muted bg-body border border-dashed rounded-5">
+                <button type="button" class="position-absolute top-0 end-0 p-3 m-3 bg-opacity-10 rounded-pill"
+                    aria-label="Read More">Read More</button>
+                <h1 class="text-body-emphasis display-3 fw-bolder">
+                    <div class="highlight-inline">Conditionals</div>
+                    and <div class="highlight-inline">Components!</div>
+                </h1>
+
+                <blockquote class="blockquote pt-5 fw-light fs-4">
+                    Conditionally render HTML and Stateful Markup Components using <div
+                        class="highlight-inline fw-bold">@_if
+                    </div>
+                </blockquote>
+                <div class="pt-2 pb-2 fs-5 lead">Toggle Authorization Status<button
+                        class="auth-toggle btn btn-outline-light cond-2 fw-semibold fs-4 mx-4 _sm">
+                        @_if(@AuthStatus === false) @{
+                        Sign In
+                        }@
+                        @_if(@AuthStatus === true) @{
+                        Sign Out
+                        }@
+                    </button></div>
+
+                <div class="d-grid gap-1 d-sm-flex justify-content-sm-center pt-1 fs-3 row">
+                    <div class="col">
+                        <ul class="list-group justify-content-start">
+                            <li class="list-group-item text-start">
+                                <div>
+                                    <div class="highlight-inline fw-bold">@_if</div>(<div class="cond-2"> @AuthStatus
+                                    </div> === true ) @{
+                                </div>
+                                <div class="text-muted fs-5 lead">If the AuthStatus is true, the content inside is
+                                    rendered.
+                                </div>
+                            </li>
+                            <li class="list-group-item cond-1 text-start">
+                                <div class="px-5">@@Dashboard</div>
+                                <div class="text-muted fs-5 lead">An <div class="highlight-inline fw-bold">@@SomeName
+                                    </div> is a <b>Component</b>, which are great for
+                                    encapsulating and allow easier management!
+                                </div>
+                            </li>
+                            <li class="list-group-item text-start">}@</li>
+                        </ul>
+                    </div>
+                    <div class="col _sm">
+                        @_if(@AuthStatus === true) @{
+                            @@Dashboard
+                        }@
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- Variable Injection Extra -->
+        <!-- Loops & Fetching -->
+        <div class="container justify-content-center align-items-center">
+            <div class="position-relative my-5 p-5 text-center text-muted bg-body border border-dashed rounded-5">
+                <button type="button" class="position-absolute top-0 end-0 p-3 m-3 bg-opacity-10 rounded-pill"
+                    aria-label="Read More">Read More</button>
+                <h1 class="text-body-emphasis display-3 fw-bolder">
+                    <div class="highlight-inline">Loops</div>
+                </h1>
 
+                <blockquote class="blockquote py-3 fw-light fs-4">
+                    Use the <div class="highlight-inline fw-bold">@_for
+                    </div> keyword to render large amounts of data. Just pass in an array, and let it do the heavy
+                    lifting!
+                </blockquote>
+                <div class="d-grid gap-1 d-sm-flex justify-content-sm-center pt-1 fs-3 row">
+                    <div class="col lead">
+                        <ul class="list-group justify-content-start">
+                            <li class="list-group-item text-start">
+                                <div class="fs-4 fw-bold">
+                                    <div class="highlight-inline fw-bold">@_for</div>(<div class="cond-2"> @UserDetails
+                                    </div>) @{
+                                </div>
+                                <div class="text-muted fs-5 lead">
+                                    <div class="cond-2"> @UserDetails
+                                    </div> contains an array of Objects.
+                                </div>
+                            </li>
+                            <li class="list-group-item text-start fs-4">
+                                <div class="fw-bold">
 
+                                    Name: <div class="px-1 d-inline cond-2">@x_.name</div>
+                                    <div class="text-muted">...</div>
+                                    <div class="px-2">
+                                        <div class="highlight-inline">@_if</div>
+                                        (<div class="px-1 d-inline cond-2">@x_.age</div> > 0) @{
+                                    </div>
+                                    <div class="px-5">
+                                        <div class="px-1 d-inline cond-2">@x_.age</div>
+                                    </div>
+                                    <div class="px-2">}@</div>
+                                </div>
+                                <div class="fs-5 text-muted">You can access the properties of each object in the array
+                                    using the
+                                    generic <div class="cond-2">@x_.prop</div> syntax!
+                                </div>
+                            </li>
+                            <li class="list-group-item text-start fw-bold fs-4">}@</li>
+                        </ul>
+                    </div>
+                    <div class="col _sm lead">
+                        <ul class="list-group justify-content-start cond-data">
+                            @_for(@cond-data) @{
+                            <li class="list-group-item text-start fs-3 list-group-item-action">
+                                <b>Name- @x_.name</b>
+                                <br>
+                                Desc- <div class="lead fs-4 d-inline">@x_.text</div>
+                                @_if(@x_.age > 0) @{
 
+                                <br>
+                                <div class="text-muted fs-5">@x_.age</div>
+                                }@
+                            </li>
+                            }@
+                        </ul>
+                    </div>
+                    <div class="lead fs-3 pt-4">Remember, you can interweave the <div class="highlight-inline fw-bold">
+                            @_for</div> and <div class="highlight-inline fw-bold">@_if</div> constructs as you wish.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <!-- All features : Components, FrameRate targets, Minimal set of updates, PubSub update model, 
+        Persistent updates, *BatchedUpdates, *Minimal, efficient updates, *Easily extensible design for supporting more constructs * -->
+        <div class="container px-4 py-5" id="hanging-icons">
+            <h2 class="pb-2 border-bottom display-3">And Much More!</h2>
+            <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
+              <div class="col d-flex align-items-start">
+                <div class="icon-square text-body-emphasis bg-body-secondary d-inline-flex align-items-center justify-content-center fs-4 flex-shrink-0 me-3">
+                  <svg class="bi" width="1em" height="1em"><use xlink:href="#toggles2"></use></svg>
+                </div>
+                <div>
+                  <h3 class="fs-2 text-body-emphasis display-5">Batched Rendering</h3>
+                  <p>Maintain 60 fps by updating in batches, improving performance. Set a tailored framerate for your users device.</p>
+                  <a href="#" class="btn btn-primary">
+                    Read More
+                  </a>
+                </div>
+              </div>
+              <div class="col d-flex align-items-start">
+                <div class="icon-square text-body-emphasis bg-body-secondary d-inline-flex align-items-center justify-content-center fs-4 flex-shrink-0 me-3">
+                  <svg class="bi" width="1em" height="1em"><use xlink:href="#cpu-fill"></use></svg>
+                </div>
+                <div>
+                  <h3 class="fs-2 text-body-emphasis display-5">Easily Extensible Design</h3>
+                  <p>The framework is built to support new constructs, plugins to support your use-case without needing to fight against the code.
+                    The API tries to be as clear as unambiguous as possible.
+                  </p>
+                  <a href="#" class="btn btn-primary">
+                    Read More
+                  </a>
+                </div>
+              </div>
+              <div class="col d-flex align-items-start">
+                <div class="icon-square text-body-emphasis bg-body-secondary d-inline-flex align-items-center justify-content-center fs-4 flex-shrink-0 me-3">
+                  <svg class="bi" width="1em" height="1em"><use xlink:href="#tools"></use></svg>
+                </div>
+                <div>
+                  <h3 class="fs-2 text-body-emphasis display-5">Wasteless DOM updates</h3>
+                  <p>Stateless Markup only remakes those DOM trees that get affected by any given set of updates, so there are no wasted CPU cyles.</p>
+                  <a href="#" class="btn btn-primary">
+                    Read More
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"

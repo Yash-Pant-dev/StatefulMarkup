@@ -8,20 +8,20 @@ const _SM_Version = 0.1;
 (function () {
 
     if (typeof StatefulMarkupClient !== typeof Function) {
-        _SM_Log.log(2, "%c  SMClient must be first script to load.")
+        _SM_Log.log(2, '%c  SMClient must be first script to load.')
     }
 
-    addEventListener("load", (e) => {
-        _SM_Initialization.loadPersistingData()
+    addEventListener('load', (e) => {
+        _SM_Initialization.loadPersistentData()
         _SM_Engine.renderer()
     })
 })()
 
-const persistKeyword = "_SM_Persist_"
+const persistKeyword = '_SM_Persist_'
 
 class _SM_Initialization {
 
-    static loadPersistingData() {
+    static loadPersistentData() {
         let persistingEvents: Array<SMEvent> = []
 
         for (let i = 0; i < localStorage.length; i++) {
@@ -32,7 +32,7 @@ class _SM_Initialization {
                 persistingEvents.push({
                     id: StatefulMarkupClient._eventId++,
                     event: {
-                        type: "update_p",
+                        type: 'update_p',
                         var: key.substring(persistKeyword.length),
                         val: val
                     }
@@ -85,7 +85,7 @@ class _SM_Manager {
         so that it can re-subscribe or needs to track a newly subscribed element.
     */
     static refreshSubs() {
-        const SM_CLASSNAME = "_sm"
+        const SM_CLASSNAME = '_sm'
         return this._subs = Array.from(document.getElementsByClassName(SM_CLASSNAME))
     }
 
@@ -149,7 +149,7 @@ class _SM_Transforms {
             tfmn.shard = null
         })
 
-        _SM_Log.log(1, "%c  Transforms update")
+        _SM_Log.log(1, '%c  Transforms update')
         return transforms
     }
 
@@ -183,17 +183,16 @@ class _SM_ValueInjector {
 
             // Inject values in attributes
             for (let elementAttributeName of element.getAttributeNames()) {
-                let shardAttributeName = elementAttributeName
+                let shardAttributeName = elementAttributeName as string
                 let shardAttributeValue = element.getAttribute(elementAttributeName) as string
 
-                if (elementAttributeName.startsWith("_sm_")) {
-                    let possibleVariable = elementAttributeName.replace("_sm_", "")
-                    if (this._varMap.has(possibleVariable)) {
-                        shardAttributeName = this._varMap.get(possibleVariable)
+                if (elementAttributeName.startsWith('_sm_')) {
+                    let possibleVariable = elementAttributeName.substring(4)
+                    if (this._varMap.get(possibleVariable)) {
+                        shardAttributeName = this._varMap.get(possibleVariable)!
                     }
                 }
                 shardAttributeValue = this._replacer(shardAttributeValue)
-
                 shard.setAttribute(shardAttributeName, shardAttributeValue)
             }
 
@@ -209,7 +208,7 @@ class _SM_ValueInjector {
                 newTransforms.push(tfmn)
         })
 
-        _SM_Log.log(1, "%c  Value Injector update")
+        _SM_Log.log(1, '%c  Value Injector update')
         return newTransforms
     }
 
@@ -219,12 +218,12 @@ class _SM_ValueInjector {
 
         _SM_Manager.events.forEach(evt => {
             if (evt.event.type === undefined
-                || evt.event.type === "update"
-                || evt.event.type === "update_p"
-                || evt.event.type === "component") {
+                || evt.event.type === 'update'
+                || evt.event.type === 'update_p'
+                || evt.event.type === 'component') {
 
-                if (evt.event.type === "update_p") {
-                    localStorage.setItem(persistKeyword + evt.event.var, evt.event.value as string)
+                if (evt.event.type === 'update_p') {
+                    localStorage.setItem(persistKeyword + evt.event.var, evt.event.val as string)
                 }
 
                 if (this._varMap.get(evt.event.var) != evt.event.val) {
@@ -245,14 +244,28 @@ class _SM_ValueInjector {
         An optional map can be passed which replaces the search string with entries 
         in the map, instead of _varMap. 
     */
-    static _replacer(input: string, map?: Map<string, any>) {
+    static _replacer(input: string, map?: Map<string, string>) {
         let output = input
+
+        this._markupConversions.forEach((v, k, m) => {
+            const varRegex = new RegExp(k, 'g')
+            output = output.replace(varRegex, v)
+        })
 
         if (!map)
             map = this._varMap
 
+        // Sort variable map so that longest matching variables replace instead of shortest 
+        map = new Map([...map.entries()].sort((a, b) => {
+            if (a[0].length === b[0].length)
+                return 0
+            if (a[0].length < b[0].length)
+                return 1
+            return -1
+        }))
+
         map.forEach((v, k, m) => {
-            const varRegex = new RegExp("@" + k, "g")
+            const varRegex = new RegExp('@' + k, 'g')
             output = output.replace(varRegex, v)
         })
 
@@ -267,7 +280,11 @@ class _SM_ValueInjector {
         return this._varMap
     }
 
-    private static _varMap = new Map()
+    private static _markupConversions = new Map<string, string>([
+        ["&lt;", "<"],
+        ["&gt;", ">"],
+    ])
+    private static _varMap = new Map<string, string>()
 }
 
 /* 
@@ -282,12 +299,14 @@ class _SM_ConstructInjector {
 
         transforms.forEach(tfmn => {
 
+            if (!tfmn.shard)
+                [tfmn] = _SM_Transforms.shardCurrentMirror([tfmn])
             this.content = tfmn.shard!.innerHTML
             this.parseConstructs()
             tfmn.shard!.innerHTML = this.content
         })
 
-        _SM_Log.log(1, "%c  Construct Injector update")
+        _SM_Log.log(1, '%c  Construct Injector update')
         return transforms
     }
 
@@ -302,7 +321,7 @@ class _SM_ConstructInjector {
     }
 
     private static containsConstruct() {
-        return this.content.includes("@_")
+        return this.content.includes('@_')
     }
 
     // Find the @_for/if construct, along with start and end brackets of body
@@ -312,17 +331,17 @@ class _SM_ConstructInjector {
         let balance = 0
         for (let i = 0; i < this.content.length - 1; i++) {
             let chars = this.content[i] + this.content[i + 1]
-            if (chars === "@_") {
+            if (chars === '@_') {
                 if (start === -1) {
                     start = i
                 }
             }
-            else if (chars === "@{") {
+            else if (chars === '@{') {
                 balance++
                 if (bodyStart === -1)
                     bodyStart = i
             }
-            else if (chars === "}@") {
+            else if (chars === '}@') {
                 balance--
                 if (balance === 0) {
                     bodyEnd = i
@@ -332,7 +351,7 @@ class _SM_ConstructInjector {
         }
 
         if (Math.min(start, bodyStart, bodyEnd) === -1) {
-            throw Error("Insufficient markers.")
+            throw Error('Insufficient markers.')
         }
         return [start, bodyStart, bodyEnd]
     }
@@ -348,7 +367,7 @@ class _SM_ConstructInjector {
         else if (constructType === 'if') {
             this._ifInjection(start, retStart, retEnd)
         }
-        else throw Error("Invalid constructType")
+        else throw Error('Invalid constructType')
     }
 
     private static _getConstructTag(idx: number) {
@@ -368,7 +387,7 @@ class _SM_ConstructInjector {
             }
         }
 
-        throw Error("No construct found")
+        throw Error('No construct found')
     }
 
     /* 
@@ -382,7 +401,7 @@ class _SM_ConstructInjector {
         header = header.substring(1, header.length - 1)
 
         let collection = JSON.parse(header) as Array<JSONObj>
-        let curExpansion = this.content.substring(retStart + 2, retEnd)
+        let originalStructure = this.content.substring(retStart + 2, retEnd)
 
         let bodyExpansion = ''
         collection.forEach(objectItem => {
@@ -390,11 +409,17 @@ class _SM_ConstructInjector {
             let objectData = new Map<string, any>()
 
             for (const prop in objectItem) {
-                objectData.set("_x." + prop, objectItem[prop])
+                objectData.set('x_.' + prop, objectItem[prop])
             }
+            /* 
+                Exposing each header element directly is useful if a simple array is passed, however then any undefined property
+                access turns into [object Object].
+                If a user wishes to pass in a direct array, he would instead have to create an object from the element,
+                and then access it through named properties.
+            */
+            objectData.set('x_. ', objectItem)
 
-            curExpansion = _SM_ValueInjector._replacer(curExpansion, objectData)
-            bodyExpansion += curExpansion
+            bodyExpansion += _SM_ValueInjector._replacer(originalStructure, objectData)
         })
 
         let modifiedContent = this.content.substring(0, start)
@@ -410,7 +435,16 @@ class _SM_ConstructInjector {
         let header = this.content.substring(start + forTagLen, retStart).trim()
         header = header.substring(1, header.length - 1)
 
-        let isConditionTrue = eval(header)
+        console.log(header)
+
+        let isConditionTrue = false
+        try {
+            isConditionTrue = eval(header)
+        }
+        catch (e) {
+            _SM_Log.log(2, 'If code error')
+        }
+
         let bodyExpansion = ''
 
         if (isConditionTrue)
@@ -439,7 +473,7 @@ class _SM_EventBinder {
     }
 
     static update(transforms: Array<SMTransform>) {
-        const shardList = document.createElement("EventBindingGroup")
+        const shardList = document.createElement('EventBindingGroup')
 
         transforms.forEach(tfmn => {
             if (!tfmn.shard) {
@@ -451,17 +485,15 @@ class _SM_EventBinder {
         this._listeners.forEach(listener => {
             shardList.querySelectorAll(listener.selector).
                 forEach(DOMElement => {
-
                     DOMElement.addEventListener(
                         listener.onEvent,
                         listener.callback,
                         listener.optionalArgs
                     )
-                }
-                )
+                })
         })
 
-        _SM_Log.log(1, "%c  EventBinder update")
+        _SM_Log.log(1, '%c  EventBinder update')
         return transforms
     }
 
@@ -492,7 +524,7 @@ class _SM_ExternalJS {
         const newTransforms: Array<SMTransform> = []
 
         transforms.forEach(tfmn => {
-            const elementDocument = document.createElement("ExternalManipulationGroup")
+            const elementDocument = document.createElement('ExternalManipulationGroup')
             elementDocument.append(tfmn.element)
 
             let wasUpdated = false
@@ -556,13 +588,15 @@ class _SM_Engine {
 
         if (this.rendererIntrinsics.phase === 'idle') {
 
-            if (StatefulMarkupConfig.isBatchRendered) {
+            /* A setTimeout is often of the order of ms, so batch rendering is irrelevant if target
+             framerate is greater than 120ms */
+            if (StatefulMarkupConfig.isBatchRendered && this.rendererIntrinsics.targetFramerate <= 144) {
                 this.rendererIntrinsics.phase = 'wait'
 
                 setTimeout(() => {
                     this.rendererIntrinsics.phase = 'start'
                     this.renderer()
-                }, 1000 / this.rendererIntrinsics.frameTarget)
+                }, 1000 / this.rendererIntrinsics.targetFramerate)
 
                 return
             }
@@ -573,33 +607,36 @@ class _SM_Engine {
 
 
         if (this.rendererIntrinsics.phase === 'start') {
+            _SM_Log.log(3, '%c  StartPhase')
             let tfmns = _SM_Transforms.transforms
-            _SM_Log.log(3, "%c  StartPhase")
 
             if (this._observedOperations.ExtStatelessUpdate) {
-                _SM_Log.log(3, "%c  Ext Manip")
+                _SM_Log.log(3, '%c  Ext Manip')
                 let t1 = _SM_ExternalJS.update(tfmns)
                 if (!this._observedOperations.PublishEvent) {
-                    tfmns = _SM_ValueInjector.update(t1, true)
+                    _SM_ValueInjector.update(t1, true)
+                    _SM_ConstructInjector.update(t1)
+                    _SM_EventBinder.update(t1)
                 }
-                else
-                    tfmns = _SM_ValueInjector.update(tfmns, true)
-                tfmns = _SM_ConstructInjector.update(tfmns)
-                tfmns = _SM_EventBinder.update(tfmns)
+                else {
+                    _SM_ValueInjector.update(tfmns, true)
+                    _SM_ConstructInjector.update(tfmns)
+                    _SM_EventBinder.update(tfmns)
+                }
             }
             else if (this._observedOperations.PublishEvent) {
-                _SM_Log.log(3, "%c VI")
+                _SM_Log.log(3, '%c VI')
                 tfmns = _SM_ValueInjector.update(tfmns)
                 tfmns = _SM_ConstructInjector.update(tfmns)
                 tfmns = _SM_EventBinder.update(tfmns)
             }
             else if (this._observedOperations.EventBindingUpdate) {
-                _SM_Log.log(3, "%c Skipped VI, CE")
+                _SM_Log.log(3, '%c Skipped VI, CE')
                 tfmns = _SM_Transforms.shardCurrentMirror(tfmns)
                 tfmns = _SM_EventBinder.update(tfmns)
             }
             else {
-                _SM_Log.log(2, "%c  Impossible Render phase.")
+                _SM_Log.log(2, '%c  Impossible Render phase.')
             }
 
             _SM_Reconcilliation.saveState()
@@ -610,14 +647,18 @@ class _SM_Engine {
             An init phase indicates the stage before the very first render.
         */
         if (this.rendererIntrinsics.phase === 'init') {
-            _SM_Log.log(3, "%c  init phase")
+            _SM_Log.log(3, '%c  init phase')
 
             let subscribers = _SM_Manager.refreshSubs()
             let tfmns = _SM_Transforms.createTransforms(subscribers)
             _SM_ExternalJS.update(tfmns)
-            let t1 = _SM_ValueInjector.update(tfmns, true)
-            _SM_ConstructInjector.update(t1)
-            tfmns = _SM_EventBinder.update(tfmns)
+            _SM_ValueInjector.update(tfmns, true)
+            /* 
+                Performing operations on all tfmns is important since
+                one can use constructs without value injection 
+            */
+            _SM_ConstructInjector.update(tfmns)
+            _SM_EventBinder.update(tfmns)
 
             _SM_Reconcilliation.saveState()
             _SM_Transforms.update(tfmns)
@@ -625,9 +666,13 @@ class _SM_Engine {
 
         this._observedOperations.reset()
         _SM_Reconcilliation.reconcile()
-        
-        _SM_Log.log(1, '%c  Render phase finished.')
+
+        if (this.rendererIntrinsics.phase === 'init')
+            _SM_Engine.showSubscribers()
+
         document.dispatchEvent(new Event('RenderEvent'))
+        _SM_Log.log(1, '%c  Render phase finished.')
+        this.rendererIntrinsics.frameNumber++
         this.rendererIntrinsics.phase = 'idle'
     }
 
@@ -646,35 +691,47 @@ class _SM_Engine {
 
     static rendererIntrinsics = {
         phase: 'init',
-        frameTarget: StatefulMarkupConfig.TARGET_FRAMERATE
+        targetFramerate: StatefulMarkupConfig.TARGET_FRAMERATE,
+        frameNumber: 1
+    }
+
+    static showSubscribers() {
+        document.querySelectorAll('._sm_HideUntilReady').forEach((element) => {
+            (element as HTMLElement).style.opacity = '1'
+        })
     }
 }
 
+/* 
+    Contains two stages - Save state and Reconcile.
+    Save state saves the details that get lost when a DOM Node gets cloned,
+    such as focus, text selection, checkbox checks etc.
+    Reconcile re-adds them when the transforms get updated.
+*/
 class _SM_Reconcilliation {
 
     static saveState() {
 
         let unprocessedEvents: Array<SMEvent> = []
-        let reconcilliationEvents: Array<ReconcilliationEvent> = []
 
         _SM_Manager.events.forEach(evt => {
             if (evt.event.type !== 'saveState') {
                 unprocessedEvents.push(evt)
             }
             else {
-                reconcilliationEvents.push(evt.event)
+                this._savedTargets.push(evt.event)
             }
         })
 
         _SM_Manager.events = unprocessedEvents
 
-        reconcilliationEvents.forEach((evt) => {
+        this._savedTargets.forEach((evt) => {
             switch (evt.on) {
-                case 'input':
+                case 'input-text':
                     this.saveInputState(evt)
                     break
                 default:
-                    _SM_Log.log(2, 'Reconcilliation not defined for type - ' + evt.on)
+                    _SM_Log.log(2, 'Saving state not defined for type - ' + evt.on)
             }
         })
     }
@@ -684,8 +741,7 @@ class _SM_Reconcilliation {
         this._savedStates.forEach((save) => {
 
             switch (save.on) {
-
-                case 'input':
+                case 'input-text':
                     this.reconcileInputState(save)
                     break;
                 default:
@@ -696,6 +752,23 @@ class _SM_Reconcilliation {
         this._savedStates = []
     }
 
+    static saveInputState(evt: ReconcilliationEvent) {
+
+        let currentState: ReconcilliationEvent = { on: 'input-text', selector: evt.selector }
+        let selector = evt.selector
+        let element = document.querySelector(selector)
+
+        if (element === null)
+            return _SM_Log.log(2, 'Save state element not found, selector: ' + selector)
+
+        currentState.wasFocused = (document.activeElement === element) + ''
+        // @ts-ignore
+        currentState.selectionStart = element.selectionStart
+        // @ts-ignore
+        currentState.selectionEnd = element.selectionEnd
+        this._savedStates.push(currentState)
+    }
+
     static reconcileInputState(save: ReconcilliationEvent) {
 
         let element = document.querySelector(save.selector)
@@ -703,33 +776,19 @@ class _SM_Reconcilliation {
         if (element === null)
             return _SM_Log.log(2, 'Cannot find element to reconcile - ' + save.selector)
 
-        if (save.wasFocused) {
+        if (save.wasFocused === 'true') {
             (element as HTMLElement).focus()
         }
 
         // @ts-ignore
         element.setSelectionRange(save.selectionStart, save.selectionEnd)
-        console.log('RIS - ', save.selectionStart, save.selectionEnd)
     }
 
-    static saveInputState(evt: ReconcilliationEvent) {
-        let currentState: ReconcilliationEvent = { on: 'input', selector: evt.selector }
-        let selector = evt.selector
-        let element = document.querySelector(selector)
-
-        if (element === null)
-            return _SM_Log.log(2, 'Save state element not found, selector: ' + selector)
-
-        currentState.wasFocused = (document.activeElement === element) + ""
-        // console.log('SIS - AE', (document.activeElement as any).outerHTML)
-        // @ts-ignore
-        currentState.selectionStart = element.selectionStart
-        // @ts-ignore
-        currentState.selectionEnd = element.selectionEnd
-        console.log('SIS - ', currentState, (element as any).outerHTML )
-        this._savedStates.push(currentState)
+    static __clearTargets() {
+        this._savedTargets = []
     }
 
+    private static _savedTargets: Array<RecTarget> = []
     private static _savedStates: Array<EventDetails> = []
 }
 
