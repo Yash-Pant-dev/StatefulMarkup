@@ -488,12 +488,15 @@ class _SM_Engine {
                 _SM_Log.log(3, '%c  Ext Manip');
                 let t1 = _SM_ExternalJS.update(tfmns);
                 if (!this._observedOperations.PublishEvent) {
-                    tfmns = _SM_ValueInjector.update(t1, true);
+                    _SM_ValueInjector.update(t1, true);
+                    _SM_ConstructInjector.update(t1);
+                    _SM_EventBinder.update(t1);
                 }
-                else
-                    tfmns = _SM_ValueInjector.update(tfmns, true);
-                tfmns = _SM_ConstructInjector.update(tfmns);
-                tfmns = _SM_EventBinder.update(tfmns);
+                else {
+                    _SM_ValueInjector.update(tfmns, true);
+                    _SM_ConstructInjector.update(tfmns);
+                    _SM_EventBinder.update(tfmns);
+                }
             }
             else if (this._observedOperations.PublishEvent) {
                 _SM_Log.log(3, '%c VI');
@@ -521,6 +524,10 @@ class _SM_Engine {
             let tfmns = _SM_Transforms.createTransforms(subscribers);
             _SM_ExternalJS.update(tfmns);
             _SM_ValueInjector.update(tfmns, true);
+            /*
+                Performing operations on all tfmns is important since
+                one can use constructs without value injection
+            */
             _SM_ConstructInjector.update(tfmns);
             _SM_EventBinder.update(tfmns);
             _SM_Reconcilliation.saveState();
@@ -557,6 +564,12 @@ _SM_Engine.rendererIntrinsics = {
     targetFramerate: StatefulMarkupConfig.TARGET_FRAMERATE,
     frameNumber: 1
 };
+/*
+    Contains two stages - Save state and Reconcile.
+    Save state saves the details that get lost when a DOM Node gets cloned,
+    such as focus, text selection, checkbox checks etc.
+    Reconcile re-adds them when the transforms get updated.
+*/
 class _SM_Reconcilliation {
     static saveState() {
         let unprocessedEvents = [];

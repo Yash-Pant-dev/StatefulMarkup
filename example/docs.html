@@ -1,0 +1,188 @@
+<!doctype html>
+<html data-bs-theme="dark">
+
+<head>
+    <title>
+        Stateful Markup
+    </title>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+
+    <script src="../dist/StatefulMarkupClient.js"></script>
+</head>
+
+<!-- <script src="example/components/dashboard.js"></script>
+<script src="example/components/footer.js"></script> -->
+<!-- <script defer src="./index.js"></script> -->
+<script defer src="../dist/StatefulMarkup.js"></script>
+
+<link rel="stylesheet" href="./doc.css">
+
+
+<!-- <body style="opacity: 0;"> -->
+
+<body>
+    <main class="d-flex flex-nowrap row-cols-2">
+        <!-- Landing Cover -->
+        <!-- Fix width of sidebar -->
+        <div class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark col-3" style="width: 280px;">
+            <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+                <span class="fs-4">Sidebar</span>
+            </a>
+            <hr>
+            <ul class="nav nav-pills flex-column mb-auto">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active" aria-current="page">
+                        Home
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link text-white">
+                        Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link text-white">
+                        Orders
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link text-white">
+                        Products
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link text-white">
+                        Customers
+                    </a>
+                </li>
+            </ul>
+            <hr>
+            <div class="dropdown">
+                <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    <img src="https://github.com/mdo.png" alt="" width="32" height="32" class="rounded-circle me-2">
+                    <strong>mdo</strong>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
+                    <li><a class="dropdown-item" href="#">New project...</a></li>
+                    <li><a class="dropdown-item" href="#">Settings</a></li>
+                    <li><a class="dropdown-item" href="#">Profile</a></li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li><a class="dropdown-item" href="#">Sign out</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-10">
+            <div class="container justify-content-center align-items-center ">
+                <div
+                    class="position-relative my-5 p-5 text-center text-muted bg-body border border-success-subtle rounded-5">
+
+                    <h1 class="text-body-emphasis display-1 lead">Documentation
+                    </h1>
+                    <div class="text-start">
+                        <div class="display-5 py-4 heading">What are Subscribers?</div>
+                        The framework works on a Pub-Sub like model. Subscribers are those HTML tags which contain the
+                        special "_sm" class, which grants them visibility to the framework and
+                        special powers like reactivity. Any subscriber provides these
+                        special powers to its children elements too. Therefore, there can never be two elements
+                        that contain this special class of which one is ancestor of the other, otherwise bad things
+                        happen.
+
+                        Any element that does not have an ancestor with this special class is in effect invisible to
+                        this
+                        framework and will never be modified by any state updates, components, constructs like if/for
+                        and
+                        so on.
+
+                        The framework gets all subscribers once before the first render, and keeps track of them. If you
+                        dynamically add / remove the _sm class using custom javascript, you will have to manually inform
+                        the framework about it.
+                        <br>
+                        The framework creates transforms from the subscribers.
+
+                        <div class="display-5 py-4 heading">What are Transforms?</div>
+                        A transform is composed of 3 important parts. The element, the mirror and the shard.
+                        <div class="display-6 py-2 sub-heading">Elements</div>
+                        Elements are original DOM nodes, as written by the site creator, completely untouched
+                        by the framework. In effect they contain all the various special variables, components and
+                        constructs in their textual form - @var, @@component, @_if .... etc.
+
+                        The framework stores an unaltered copy of them, and then clones them to add reactivity to them,
+                        and <b>only modifies and displays these clones.</b>
+                        * Note that this means that before the JS files load, the user can catch a glimpse of the
+                        original
+                        text, but this should be momentary. However you can hide these elements until they are ready.
+
+                        <div class="display-6 py-2 sub-heading">Mirrors</div>
+                        Mirrors are the DOM trees that are currently being displayed to the user. When you push an
+                        update,
+                        and the display changes, that means a new mirror with the respective changes has replaced the
+                        older DOM
+                        tree in the document, which is why the changes can be seen.
+
+                        <div class="display-6 py-2 sub-heading">Shards</div>
+                        Shards are the future mirrors under construction. Every time an update is published, the
+                        framework clones the original element and the injects the changes into the shard. Each shard
+                        goes through many stages before it is ready to replace the mirror. These stages, in order are :
+                        External Stateless Update, Value Injection, Construct Injection, Event Binding and then it is
+                        finally ready to replace the current mirror.
+                        (Read below to learn in detail about each stage.)
+                        <br>
+                        After the shards finish getting constructing, the mirrors then get replaced by the shards, and
+                        the shards get nulled.
+
+                        <div class="display-5 py-4 heading">What is Value Injection?</div>
+                        Value Injection is the method by which framework really maintains reactivity, the process
+                        involves updating the @vars present in a shard with the current values as published. The
+                        _SM_ValueInjector class maintains a mapping of each variable and their value, which gets updated
+                        with each update/publish call.
+
+                        <div class="display-5 py-4 heading">What is Construct Injection?</div>
+                        Construct Injection is the method by which @_for and @_if constructs really come alive. The
+                        framework evaluates the array/condition passed into the header of these constructs and
+                        accordingly expands/displays the body of the construct. The body of the construct is marked by
+                        two special brackets- @{ and }@ to indicate their start and end.
+
+                        <div class="display-5 py-4 heading">What is Event Binding?</div>
+                        When a DOM tree is cloned, the resulting clone tree does not keep any event listeners attached
+                        to the original tree. So to keep the event listeners attached to the mirrors, we use the
+                        addEventListener function provided by the framework and register the event listeners there, so
+                        that with each update we re-add the event listeners to each shard.
+
+                        <div class="display-5 py-4 heading">Time to update Transforms!</div>
+                        Now that all the stages are over, we replace the mirrors currently on display with the corresponding shards. 
+
+                        <!-- An example gif / text would be nice. -->
+
+                        <div class="display-5 py-4 heading">Batched Rendering</div>
+                        Batched rendering is the a way of increasing performance and taxing user devices less. When an update is performed, the framework waits for a few milliseconds hoping for some other updates to also come, (this is often true if some updates happen together, such as as sign-out UI change also triggering some changes in the nav-bar etc) and then performs the updates all together. This saves some processing power and can lead to a smoother UI. The wait time is always supposed to be low enough, the the user does not notice this delay, typically 16ms(60 fps) or 33ms(30 fps). 
+
+                        <div class="display-5 py-4 heading">What are Persistent Updates?</div>
+                        Stateful Markup offers publishing updates to your local storage so that even when your website is closed and reopened later some state can be preserved. For example if the user was logged in, you can simply save their user name and display it automatically when they re-open your website.
+                        <!-- Simple ui here to show a line of the function. -->
+
+                        <div class="display-5 py-4 heading">What do you mean by Wasteless DOM Updates?</div>
+                        When an update does not cause any noticeable change in the UI, the framework smartly discards creating a shard and updating the mirror. For example publishing a @variable that exists in only a small set of DOM trees, causes only these DOM trees to get updated.
+
+                        <div class="display-5 py-4 heading">On Orthogonal Design</div>
+                        Orthogonal design is a philosophy of creating tools that can layer on top of existing processes, and dont need the creator to change their pre-existing codebase to use them. They simply add features, and dont impinge other functions. These can be dropped onto an older project and simply work, without causing trouble with the other libraries, tools and other frameworks you might be using. 
+                        <br>
+                        Stateful Markup tries to be as orthogonal possible, letting you keep as much of your code as possible. If you were manually manipulating the DOM tree through external JS, the framework provides a convenient wrapper a one line wrapper so that you can keep that. If you were using custom event listeners, the addEventListener allows you to maintain the  
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>
