@@ -435,14 +435,12 @@ class _SM_ConstructInjector {
         let header = this.content.substring(start + forTagLen, retStart).trim()
         header = header.substring(1, header.length - 1)
 
-        console.log(header)
-
         let isConditionTrue = false
         try {
             isConditionTrue = eval(header)
         }
         catch (e) {
-            _SM_Log.log(2, 'If code error')
+            _SM_Log.log(3, '%c  If header evaluation failed. [This may be intentional]')
         }
 
         let bodyExpansion = ''

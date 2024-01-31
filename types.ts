@@ -25,7 +25,7 @@ type SMListener = {id: Id} & ListenerDetails
 interface ListenerDetails {
     selector: QuerySelector,
     onEvent: OnEvent,
-    callback: EventListener,
+    callback: (this: Element, ev: Event) => any,
     optionalArgs: AddEventListenerOptions
 }
 type OnEvent = keyof ElementEventMap
@@ -59,5 +59,7 @@ interface JSONObj {
 
 interface Component {
     name: string
-    template: string
+    template: string,
+    events: Array<EventDetails>
+    eventListeners: Array<ListenerDetails>
 }

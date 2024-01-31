@@ -62,7 +62,12 @@ class StatefulMarkupClient {
         Registers the components provided to the framework on the Engine.
     */
     static registerComponent(cmp) {
-        this.eventsBuffer.push({
+        var _a, _b;
+        (_a = cmp.events) === null || _a === void 0 ? void 0 : _a.forEach(evt => StatefulMarkupClient._eventsBuffer.push({
+            id: StatefulMarkupClient._eventId++,
+            event: evt
+        }));
+        StatefulMarkupClient.eventsBuffer.push({
             id: StatefulMarkupClient._eventId++,
             event: {
                 type: "component",
@@ -70,6 +75,18 @@ class StatefulMarkupClient {
                 val: cmp.template
             }
         });
+        if (((_b = cmp.eventListeners) === null || _b === void 0 ? void 0 : _b.length) > 0) {
+            cmp.eventListeners.forEach(el => {
+                StatefulMarkupClient._eventListeners.push({
+                    id: StatefulMarkupClient._listenerId++,
+                    selector: el.selector,
+                    onEvent: el.onEvent,
+                    callback: el.callback,
+                    optionalArgs: el.optionalArgs
+                });
+            });
+            StatefulMarkupClient._informEngine('EvBind');
+        }
         StatefulMarkupClient._informEngine('Pub');
     }
     static _informEngine(operation) {

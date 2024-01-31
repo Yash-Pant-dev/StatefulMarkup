@@ -14,8 +14,8 @@
     <script src="../dist/StatefulMarkupClient.js"></script>
 </head>
 
-<!-- <script src="example/components/dashboard.js"></script>
-<script src="example/components/footer.js"></script> -->
+<script src="./components/dashboard.js"></script>
+<script src="./components/footer.js"></script>
 <!-- <script defer src="./index.js"></script> -->
 <script defer src="../dist/StatefulMarkup.js"></script>
 
@@ -104,6 +104,63 @@
                         dynamically add / remove the _sm class using custom javascript, you will have to manually inform
                         the framework about it.
                         <br>
+                        <div class="accordion py-2" id="accordionPanelsStayOpenExample">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="false"
+                                        aria-controls="panelsStayOpen-collapseOne">
+                                        Examples
+                                    </button>
+                                </h2>
+                                <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse">
+                                    <div class="accordion-body">
+                                        <code>
+                                        &lt;div class="_sm extra-class-one"> <div class="d-inline comment"><- This entire div, and anything within it is now changeable through the framework</div>
+                                        <br>
+                                        Some text, some &lt;div id="uid-1">...Nested Structure... &lt;/div> <div class="d-inline comment"><- But don't add the _sm tag here, the framework will break due to recursive updates.</div>
+                                        <br>
+                                        &lt;/div>
+                                    </code>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#panelsStayOpen-collapseTwo" aria-expanded="false"
+                                        aria-controls="panelsStayOpen-collapseTwo">
+                                        Wasteful Updates
+                                    </button>
+                                </h2>
+                                <div id="panelsStayOpen-collapseTwo" class="accordion-collapse collapse">
+                                    <div class="accordion-body">
+                                        Ideally, the subscribers of the framework should be as deep as possible for
+                                        maximal performance. This is because with each change, the entire subscribed DOM
+                                        tree changes, and hence if @vars exist only at a great depth, then their
+                                        ancestors will
+                                        get unnecessarily updated.
+                                        <br>
+                                        However, remember that premature optimization is often the bane of developer
+                                        productivity. Stateful markup is highly performant usually, so you very very
+                                        rarely need to do optimizations like the following:
+                                        <br>
+                                        <code>
+                                            &lt;div class="parent <i>_sm</i>">Some content.&lt;div class="sibling-1">@var1&lt;/div>&lt;div class="sibling-2">@var2&lt;/div>&lt;/div>
+                                        </code>
+                                        <br>
+                                        Can be optimized to ->
+                                        <br>
+                                        <code>
+                                            &lt;div class="parent">Some Content.&lt;div class="sibling-1 <i>_sm</i>" class>@var1&lt;/div>&lt;div class="sibling-2 <i>_sm</i>">@var2&lt;/div>&lt;/div>
+                                        </code>
+                                        <br>
+                                        Now the only div with class parent does not need to rebuild on change, only its
+                                        children do.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         The framework creates transforms from the subscribers.
 
                         <div class="display-5 py-4 heading">What are Transforms?</div>
@@ -156,24 +213,123 @@
                         that with each update we re-add the event listeners to each shard.
 
                         <div class="display-5 py-4 heading">Time to update Transforms!</div>
-                        Now that all the stages are over, we replace the mirrors currently on display with the corresponding shards. 
+                        Now that all the stages are over, we replace the mirrors currently on display with the
+                        corresponding shards.
 
                         <!-- An example gif / text would be nice. -->
 
                         <div class="display-5 py-4 heading">Batched Rendering</div>
-                        Batched rendering is the a way of increasing performance and taxing user devices less. When an update is performed, the framework waits for a few milliseconds hoping for some other updates to also come, (this is often true if some updates happen together, such as as sign-out UI change also triggering some changes in the nav-bar etc) and then performs the updates all together. This saves some processing power and can lead to a smoother UI. The wait time is always supposed to be low enough, the the user does not notice this delay, typically 16ms(60 fps) or 33ms(30 fps). 
+                        Batched rendering is the a way of increasing performance and taxing user devices less. When an
+                        update is performed, the framework waits for a few milliseconds hoping for some other updates to
+                        also come, (this is often true if some updates happen together, such as as sign-out UI change
+                        also triggering some changes in the nav-bar etc) and then performs the updates all together.
+                        This saves some processing power and can lead to a smoother UI. The wait time is always supposed
+                        to be low enough, the the user does not notice this delay, typically 16ms(60 fps) or 33ms(30
+                        fps).
 
                         <div class="display-5 py-4 heading">What are Persistent Updates?</div>
-                        Stateful Markup offers publishing updates to your local storage so that even when your website is closed and reopened later some state can be preserved. For example if the user was logged in, you can simply save their user name and display it automatically when they re-open your website.
+                        Stateful Markup offers publishing updates to your local storage so that even when your website
+                        is closed and reopened later some state can be preserved. For example if the user was logged in,
+                        you can simply save their user name and display it automatically when they re-open your website.
                         <!-- Simple ui here to show a line of the function. -->
 
                         <div class="display-5 py-4 heading">What do you mean by Wasteless DOM Updates?</div>
-                        When an update does not cause any noticeable change in the UI, the framework smartly discards creating a shard and updating the mirror. For example publishing a @variable that exists in only a small set of DOM trees, causes only these DOM trees to get updated.
+                        When an update does not cause any noticeable change in the UI, the framework smartly discards
+                        creating a shard and updating the mirror. For example publishing a @variable that exists in only
+                        a small set of DOM trees, causes only these DOM trees to get updated.
+                        This allows for performant rendering, especially with larger DOM trees.
 
-                        <div class="display-5 py-4 heading">On Orthogonal Design</div>
-                        Orthogonal design is a philosophy of creating tools that can layer on top of existing processes, and dont need the creator to change their pre-existing codebase to use them. They simply add features, and dont impinge other functions. These can be dropped onto an older project and simply work, without causing trouble with the other libraries, tools and other frameworks you might be using. 
+                        <!-- Improve Content 
+                        1. Opt in using _sm-->
+                        <div class="display-5 py-4 heading">Orthogonally Designed</div>
+                        Orthogonal design is a philosophy of creating tools that can layer on top of existing processes,
+                        and dont need the creator to change their pre-existing codebase to use them. They simply add
+                        features, and dont impinge other functions. These can be dropped onto an older project and
+                        simply work, without causing trouble with the other libraries, tools and other frameworks you
+                        might be using.
                         <br>
-                        Stateful Markup tries to be as orthogonal possible, letting you keep as much of your code as possible. If you were manually manipulating the DOM tree through external JS, the framework provides a convenient wrapper a one line wrapper so that you can keep that. If you were using custom event listeners, the addEventListener allows you to maintain the  
+                        Stateful Markup tries to be very orthogonal, letting you keep as much of your code as
+                        possible. If you were manually manipulating the DOM tree through external JS, the framework
+                        provides a convenient wrapper a one line wrapper so that you can keep that. If you were using
+                        custom event listeners, the addEventListener allows you to keep the code you had already
+                        written.
+                        <br>
+                        The variables/constructs are named starting with '@/@_' to minimize chances of the framework
+                        misidentifying normal text. Similarly, the _sm class and the every function in the
+                        StatefulMarkup.js file starts with _SM_ prefix, so that it does not interfere with existing
+                        libraries.
+                        <br>
+                        In short, framework tries to assume as little as possible about the existing DOM tree, or
+                        existing JS, so that whatever be the project, a minimal amount of changes are required.
+
+                        <div class="display-5 py-4 heading">Components</div>
+                        When I designed Stateful Markup, a useful feature that could get neatly implemented was
+                        Components.
+                        Components are a nice coupling of
+                        They can offer a greatly ergonomic experience & extensibility in your website (with a small
+                        tradeoff in performance).
+
+
+                        They allow markup and event listeners for the footer, the nav-bar, dashboard components and
+                        other oft-repeated items to be written once, imported anywhere, leading to a cleaner code-base.
+                        They also couple the state, events handling and the markup together, so there is just a single
+                        source of truth for such stuff.
+
+                        Remember that state is global, so be descriptive in your variable names!
+                        <br>
+                        <div class="accordion pt-3" id="accordionPanelsStayOpenExample">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#panelsStayOpen-collapseTwo" aria-expanded="false"
+                                        aria-controls="panelsStayOpen-collapseTwo">
+                                        Example component- Penguin Launcher
+                                    </button>
+                                </h2>
+                                <div id="panelsStayOpen-collapseTwo" class="accordion-collapse collapse">
+                                    <div class="accordion-body">
+                                        <code>const DashboardComponent = { <div class="d-inline comment"><- Declare a component to register.</div>
+                                            <br>
+                                            name: 'Dashboard', <div class="d-inline comment"><- Use the string @@Dashboard in any subscribed class to display</div>
+                                                <br>
+                                            template: ` <div class="d-inline comment"><- Use the string @@Dashboard in any subscribed class to display the following instead</div>
+                                            <br>
+                                            &lt;div id="dash" class="container-fluid h-100 justify-content-start rounded">
+                                            <br>
+                                            &lt;div class="display-6 p-4 text-danger">Super Secret Dashboard&lt;/div>
+                                            <br>
+                                            &lt;div class="lead fs-4 py-1">Welcome @Suffix&lt;/div>
+                                            <br>
+                                            &lt;button class="btn btn-outline-success text-start fw-semibold fs-6">Launch Penguins into North Korea&lt;/button>
+                                            <br>
+                                            &lt;/div>
+                                            <br>
+                                            `,
+                                            <br>
+                                            eventListeners: [{ <div class="d-inline comment"><- Pass an array of event listeners to execute, typically scoped to work only on this component</div>
+                                                <br>
+                                                selector: '#dash .btn', onEvent: 'click', callback: () => {
+                                                    <br>
+                                                    alert('Penguins launched!')
+                                                    <br>
+                                                }
+                                                <br>
+                                            }],
+                                            <br>
+                                            events: [] <div class="d-inline comment"><- Pass in a set of events, that get executed as soon as the component is registered. Note: They use the publish API, instead of the update API.</div>
+                                            <br>
+                                        }
+                                        <br>
+                                        <br>
+                                        
+                                        StatefulMarkupClient.registerComponent(DashboardComponent) <div class="d-inline comment"><- Registering a component makes it visible to the framework. An unregistered component is unable to get injected.</div>
+                                    `</code>
+
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -76,16 +76,37 @@ class StatefulMarkupClient {
     */
     static registerComponent(cmp: Component) {
 
-        this.eventsBuffer.push({
+        cmp.events?.forEach(evt => StatefulMarkupClient._eventsBuffer.push(
+            {
+                id: StatefulMarkupClient._eventId++,
+                event: evt
+            }))
+
+        StatefulMarkupClient.eventsBuffer.push({
             id: StatefulMarkupClient._eventId++,
             event: {
                 type: "component",
                 var: "@" + cmp.name,
                 val: cmp.template
             }
-        })
+        });
 
-        StatefulMarkupClient._informEngine('Pub')
+
+        if (cmp.eventListeners?.length > 0) {
+            cmp.eventListeners.forEach(el => {
+                StatefulMarkupClient._eventListeners.push(
+                    {
+                        id: StatefulMarkupClient._listenerId++,
+                        selector: el.selector,
+                        onEvent: el.onEvent,
+                        callback: el.callback,
+                        optionalArgs: el.optionalArgs
+                    })
+            })
+            StatefulMarkupClient._informEngine('EvBind');
+        }
+
+        StatefulMarkupClient._informEngine('Pub');
     }
 
     static _informEngine(operation: SMOperation) {
@@ -125,7 +146,7 @@ class StatefulMarkupClient {
     private static _statelessUpdates: Array<SMExterns> = []
     private static _updateId = 1
 
-    
+
 
     static INIT_TIME = Date.now()
     static _dumpLogs() {
