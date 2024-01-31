@@ -1,7 +1,20 @@
-.heading{
-    
+:root {
+    --primary: rgba(74, 141, 203, 1);
+    --secondary: chocolate;
+    --green: #198754
 }
 
 .comment {
     color: white
+}
+
+.highlight-inline {
+    /* display: inline-flex; */
+    display: inline;
+    color: var(--primary);
+}
+
+.cond-2 {
+    display: inline;
+    color: var(--secondary)
 }

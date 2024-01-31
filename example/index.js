@@ -41,3 +41,6 @@ authToggleFn = (e) => {
     console.log(newAuthState, curAuthState === 'false')
 }
 SM.addListener('.auth-toggle', 'click', authToggleFn, {})
+
+
+StatefulMarkupConfig.TARGET_FRAMERATE = 1;

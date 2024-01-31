@@ -104,7 +104,7 @@
                         dynamically add / remove the _sm class using custom javascript, you will have to manually inform
                         the framework about it.
                         <br>
-                        <div class="accordion py-2" id="accordionPanelsStayOpenExample">
+                        <div class="accordion py-3" id="accordionPanelsStayOpenExample">
                             <div class="accordion-item">
                                 <h2 class="accordion-header">
                                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
@@ -130,7 +130,7 @@
                                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                                         data-bs-target="#panelsStayOpen-collapseTwo" aria-expanded="false"
                                         aria-controls="panelsStayOpen-collapseTwo">
-                                        Wasteful Updates
+                                        Improving performance
                                     </button>
                                 </h2>
                                 <div id="panelsStayOpen-collapseTwo" class="accordion-collapse collapse">
@@ -164,7 +164,7 @@
                         The framework creates transforms from the subscribers.
 
                         <div class="display-5 py-4 heading">What are Transforms?</div>
-                        A transform is composed of 3 important parts. The element, the mirror and the shard.
+                        A transform is composed of 3 important parts. The element, the mirror and the shard. They are the crux of what converts the original DOM tree into a reactive display.
                         <div class="display-6 py-2 sub-heading">Elements</div>
                         Elements are original DOM nodes, as written by the site creator, completely untouched
                         by the framework. In effect they contain all the various special variables, components and
@@ -200,13 +200,78 @@
                         _SM_ValueInjector class maintains a mapping of each variable and their value, which gets updated
                         with each update/publish call.
 
+                        <div class="accordion py-3" id="accordionPanelsStayOpenExample">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#panelsStayOpen-collapsevi" aria-expanded="false"
+                                        aria-controls="panelsStayOpen-collapsevi">
+                                        Components through Value Injection
+                                    </button>
+                                </h2>
+                                <div id="panelsStayOpen-collapsevi" class="accordion-collapse collapse">
+                                    <div class="accordion-body">
+                                        If you think about it, the markup injected in a component is similar to a any
+                                        data being injected through an <code>@var</code>. So, when a component is
+                                        registered and used, the framework publishes a variable with
+                                        <code>var = @component-name</code> and <code>value = template </code>of the
+                                        component.
+                                        <br>
+                                        Ofcourse, components also have listeners and events associated with them, which
+                                        are handled as normal.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="display-5 py-4 heading">What are Constructs?</div>
+                        Constructs are an abstraction that support usage functions common in other functions and help
+                        write shorter, less verbose code. There are 2 basic constructs : If and For. The If construct
+                        conditionally renders the DOM elements inside if it evaluates to true. The For construct expands
+                        a list shared in the header, and displays it as the markup indicates.
+
                         <div class="display-5 py-4 heading">What is Construct Injection?</div>
                         Construct Injection is the method by which @_for and @_if constructs really come alive. The
                         framework evaluates the array/condition passed into the header of these constructs and
                         accordingly expands/displays the body of the construct. The body of the construct is marked by
                         two special brackets- @{ and }@ to indicate their start and end.
 
-                        <div class="display-5 py-4 heading">What is Event Binding?</div>
+                        <div class="accordion py-3" id="accordionPanelsStayOpenExample">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#panelsStayOpen-collapseci" aria-expanded="false"
+                                        aria-controls="panelsStayOpen-collapseci">
+                                        Creating new Constructs
+                                    </button>
+                                </h2>
+                                <div id="panelsStayOpen-collapseci" class="accordion-collapse collapse">
+                                    <div class="accordion-body">
+                                        Creating new constructs to suit you use case is very simple. The code follows
+                                        basically two stages:
+                                        <br>
+                                        Finding the markers : Markers are a way to indicate to the framework that a
+                                        construct is present in the markup. There are 3 marker -
+                                        <code>'@_', '@{' </code>and <code>'}@'</code>. The @_ follows a name which is
+                                        the type of construct. Then a pair of brackets follow, containing the header,
+                                        like a list or a variable. @{ and }@ contain the body of the construct. This
+                                        will typically be some type of markup that gets modified and displayed by the
+                                        construct, but can really be anything you wish.
+                                        <br>
+                                        The second stage is executing the construct. The code grabs the construct type
+                                        and then switches to a function that knows how to handle it.
+                                        <br>
+                                        <br>
+                                        Constructs are <code>best used when there is a
+                                            particular pattern that you often need to execute in code. The most common
+                                            ones I felt were useful was conditional rendering and list expansion, which
+                                            is why I built those.</code>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="display-5 py-2 heading">What is Event Binding?</div>
                         When a DOM tree is cloned, the resulting clone tree does not keep any event listeners attached
                         to the original tree. So to keep the event listeners attached to the mirrors, we use the
                         addEventListener function provided by the framework and register the event listeners there, so
@@ -227,7 +292,37 @@
                         to be low enough, the the user does not notice this delay, typically 16ms(60 fps) or 33ms(30
                         fps).
 
-                        <div class="display-5 py-4 heading">What are Persistent Updates?</div>
+                        <div class="accordion py-3" id="accordionPanelsStayOpenExample">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#panelsStayOpen-collapsebr" aria-expanded="false"
+                                        aria-controls="panelsStayOpen-collapsebr">
+                                        Tuning the Frame-Rate
+                                    </button>
+                                </h2>
+                                <div id="panelsStayOpen-collapsebr" class="accordion-collapse collapse">
+                                    <div class="accordion-body">
+                                        By virtue of the fact that Stateful Markup borrows some of its architectural
+                                        design from game engines, it is able to easily switch up the frame rate, ie. the
+                                        time between each batched render.
+                                        <br>
+                                        To toggle this, use the following code, and refresh the page:
+                                        <br>
+                                        <code>StatefulMarkupConfig.TARGET_FRAMERATE = 1</code>
+                                        <br>
+                                        Now, each update will take a second to show up. This can be useful to tune
+                                        according to your users needs if they have slower/faster devices, from 1 FPS to
+                                        120 or more.
+                                        <br>
+                                        <img src="assets/1FpsDemoGif.gif" alt="Rendering at 1FPS, Batched Render."
+                                            height="300px" width="700px">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="display-5 py-2 heading">What are Persistent Updates?</div>
                         Stateful Markup offers publishing updates to your local storage so that even when your website
                         is closed and reopened later some state can be preserved. For example if the user was logged in,
                         you can simply save their user name and display it automatically when they re-open your website.
@@ -276,8 +371,8 @@
                         source of truth for such stuff.
 
                         Remember that state is global, so be descriptive in your variable names!
-                        <br>
-                        <div class="accordion pt-3" id="accordionPanelsStayOpenExample">
+
+                        <div class="accordion py-3" id="accordionPanelsStayOpenExample">
                             <div class="accordion-item">
                                 <h2 class="accordion-header">
                                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
@@ -330,6 +425,93 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- TODO: Write functions like publish and external dom manip, and give examples. -->
+                        <div class="display-5 py-2 heading">Reconciliation Phase</div>
+                        When a DOM tree is cloned, it does not preserve certain states like the focused element, a
+                        checked box or radio button, or the text selected in an input box. These properties have to be
+                        preserved separately. For this, the framework calls a saveState function, that reads these
+                        special properties, and after the transforms get updated, it reconciles these saved properties
+                        back to the DOM tree.
+                        <br>
+                        Right now the save and reconcile process is still under work. <div class="cond-2 fw-bold">The goal is to build a generic
+                        method of saving and reconciling that does not require any user input, instead right now what we
+                        have in working is are different types of reconciliations on a per-case basis </div>(ie. different
+                        functions for inputs, checkboxes, radio-groups etc).
+                        <br>
+                        The code to build such functions is pretty simple, I've built one to preserve focus for text
+                        input elements.
+                        I welcome and appreciate any effort to help build such plugins for supporting different input
+                        types.
+                        <div class="accordion py-3" id="accordionPanelsStayOpenExample">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#panelsStayOpen-collapseps" aria-expanded="false"
+                                        aria-controls="panelsStayOpen-collapseps">
+                                        Example Plugin Code
+                                    </button>
+                                </h2>
+                                <div id="panelsStayOpen-collapseps" class="accordion-collapse collapse">
+                                    <div class="accordion-body">
+                                        <code>static saveInputState(evt: ReconcilliationEvent) { <div class="d-inline comment"><- The evt contains the a selector to indicate which DOM element we are saving state of.</div>
+                                            <br>
+                                            let currentState: ReconcilliationEvent = { on: 'input-text', selector: evt.selector }
+                                            <br>
+                                            let selector = evt.selector
+                                            <br>
+                                            let element = document.querySelector(selector) <div class="d-inline comment"><- Get the to be saved element.</div>
+                                            <br>
+                                            
+                                            if (element === null)
+                                            <br>
+                                            return _SM_Log.log(2, 'Save state element not found, selector: ' + selector)
+                                            <br>
+                                            <div class="d-inline comment"><- Now we are going to save the properties we wish to preserve like focus, and text selected</div>
+                                            currentState.wasFocused = (document.activeElement === element) + '' <div class="d-inline comment"><- Checks if this element was focused on.</div>
+                                            <br>
+                                            currentState.selectionStart = element.selectionStart <div class="d-inline comment"><- Finds the start of text selection, ie. cursor start</div>
+                                            <br>
+                                            currentState.selectionEnd = element.selectionEnd <div class="d-inline comment"><- Similar to above</div>
+                                            <br>
+                                            this._savedStates.push(currentState) <div class="d-inline comment"><- Put the saved properties for reconciling later.</div>
+                                            <br>
+                                        }
+                                        <br>
+                                        
+                                        <br>
+                                        static reconcileInputState(save: ReconcilliationEvent) { <div class="d-inline comment"><- save is one of the possibly many saved elements reconciled.</div>
+                                            <br>
+                                            
+                                            let element = document.querySelector(save.selector) <div class="d-inline comment"><- Extract the element from the new DOM tree.</div>
+                                            <br>
+                                            
+                                            if (element === null)
+                                            <br>
+                                            return _SM_Log.log(2, 'Cannot find element to reconcile - ' + save.selector)
+                                            <br>
+                                            
+                                            if (save.wasFocused === 'true') {
+                                                <br>
+                                                (element as HTMLElement).focus()
+                                                <br>
+                                            }
+                                            <br>
+                                            <div class="d-inline comment"><- Re-add focus if it was focused before the render happened.</div>
+                                            
+                                            element.setSelectionRange(save.selectionStart, save.selectionEnd)
+                                            <br>
+
+                                        }
+                                        <br>
+                                        <br>
+
+                                        While this works fine, its not very scalable to have to write such reconcilliation events for each type of DOM element you wish to preserve. 
+                                    </code>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        Depending on your use-case, I would recommend not adding an '_sm' class to any ancestor of a form containing radio-groups, checkboxes etc unless you are sure they are supported. <div class="highlight-inline fw-bold">Whats great is that since Stateful Markup is opt-in for any DOM tree, you can still use anywhere else on the page.</div>
                     </div>
                 </div>
             </div>
