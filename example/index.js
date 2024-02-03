@@ -1,10 +1,11 @@
-const SM = new _SMDebugProxyClient('example.js')
-// const SM = new StatefulMarkupClient('example.js')
+// const SM = new _SMDebugProxyClient('example.js')
+const SM = new StatefulMarkupClient('example.js')
 StatefulMarkupConfig.DEBUG_LOGS = true
 
 
 /* Reactivity with @Variable Demo */
 variableUpdateFn = (e) => {
+    console.log('EBB')
     SM.publish({ type: 'update_p', var: 'Variable', val: e.target.value })
 }
 SM.addListener('.variableInput', 'input', variableUpdateFn, {})
@@ -60,12 +61,14 @@ function pluginSaveInputState(evt) {
 }
 
 function pluginReconcileInputState(save) {
+    console.log('Reconcile plugin called DBG')
     let element = document.querySelector(save.selector)
 
     if (element === null)
         return _SM_Log.log(2, 'Cannot find element to reconcile - ' + save.selector)
 
     if (save.wasFocused === 'true') {
+        console.log('was focused.');
         (element).focus()
     }
 

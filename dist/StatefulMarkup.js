@@ -456,13 +456,14 @@ class _SM_Engine {
                 _SM_Log.log(2, 'Invalid operation in SM.inform');
                 break;
         }
-        if (this.rendererIntrinsics.phase === 'idle')
-            _a.renderer();
+        // TODO: Uncomment
+        // if (this.rendererIntrinsics.phase === 'idle')
+        _a.renderer();
     }
     static renderer() {
-        if (this.rendererIntrinsics.phase === 'idle') {
+        if (this.rendererIntrinsics.phase === 'idle' || this.rendererIntrinsics.phase === 'wait') {
             /* A setTimeout is often of the order of milliseconds, so batch rendering may be irrelevant if target
-             framerate is greater than 144ps */
+             framerate is greater than 144fps */
             if (StatefulMarkupConfig.isBatchRendered && this.rendererIntrinsics.targetFramerate <= 144) {
                 this.rendererIntrinsics.phase = 'wait';
                 setTimeout(() => {
@@ -475,58 +476,14 @@ class _SM_Engine {
                 this.rendererIntrinsics.phase = 'start';
             }
         }
-        // TODO: Explain why certain phases are not utilized in different situations.
+        _SM_Reconcilliation.saveState();
         if (this.rendererIntrinsics.phase === 'start') {
-            _SM_Log.log(3, '%c  StartPhase');
             let tfmns = _SM_Transforms.transforms;
-            if (this._observedOperations.ExtStatelessUpdate) {
-                _SM_Log.log(3, '%c  Ext Manip');
-                let t1 = _SM_ExternalJS.update(tfmns);
-                if (!this._observedOperations.PublishEvent) {
-                    _SM_ValueInjector.update(t1, true);
-                    _SM_ConstructInjector.update(t1);
-                    _SM_EventBinder.update(t1);
-                }
-                else {
-                    _SM_ValueInjector.update(tfmns, true);
-                    _SM_ConstructInjector.update(tfmns);
-                    _SM_EventBinder.update(tfmns);
-                }
-            }
-            else if (this._observedOperations.PublishEvent) {
-                _SM_Log.log(3, '%c VI');
-                tfmns = _SM_ValueInjector.update(tfmns);
-                tfmns = _SM_ConstructInjector.update(tfmns);
-                tfmns = _SM_EventBinder.update(tfmns);
-            }
-            else if (this._observedOperations.EventBindingUpdate) {
-                _SM_Log.log(3, '%c Skipped VI, CE');
-                tfmns = _SM_Transforms.shardCurrentMirror(tfmns);
-                tfmns = _SM_EventBinder.update(tfmns);
-            }
-            else {
-                _SM_Log.log(2, '%c  Impossible Render phase.');
-            }
-            _SM_Reconcilliation.saveState();
-            _SM_Transforms.update(tfmns);
+            this.startPhaseRender(tfmns);
         }
-        /*
-            An init phase indicates the stage before the very first render.
-        */
-        if (this.rendererIntrinsics.phase === 'init') {
-            _SM_Log.log(3, '%c  init phase');
-            let subscribers = _SM_Manager.refreshSubs();
-            let tfmns = _SM_Transforms.createTransforms(subscribers);
-            _SM_ExternalJS.update(tfmns);
-            _SM_ValueInjector.update(tfmns, true);
-            /*
-                Performing operations on all tfmns is important since
-                one can use constructs without value injection
-            */
-            _SM_ConstructInjector.update(tfmns);
-            _SM_EventBinder.update(tfmns);
-            _SM_Reconcilliation.saveState();
-            _SM_Transforms.update(tfmns);
+        else if (this.rendererIntrinsics.phase === 'init') {
+            // An init phase indicates the stage before the very first render.
+            this.initPhaseRender();
         }
         this._observedOperations.reset();
         _SM_Reconcilliation.reconcile();
@@ -535,7 +492,64 @@ class _SM_Engine {
         document.dispatchEvent(new Event('RenderEvent'));
         _SM_Log.log(1, '%c  Render phase finished.');
         this.rendererIntrinsics.frameNumber++;
-        this.rendererIntrinsics.phase = 'idle';
+        this.rendererIntrinsics.phase = 'init';
+    }
+    static startPhaseRender(tfmns) {
+        // TODO: Explain why certain phases are not utilized in different situations.
+        _SM_Log.log(3, '%c  StartPhase');
+        if (this._observedOperations.ExtStatelessUpdate) {
+            _SM_Log.log(3, '%c  Ext Manip');
+            let t1 = _SM_ExternalJS.update(tfmns);
+            if (!this._observedOperations.PublishEvent) {
+                _SM_ValueInjector.update(t1, true);
+                _SM_ConstructInjector.update(t1);
+                _SM_EventBinder.update(t1);
+            }
+            else {
+                _SM_ValueInjector.update(tfmns, true);
+                _SM_ConstructInjector.update(tfmns);
+                _SM_EventBinder.update(tfmns);
+            }
+        }
+        else if (this._observedOperations.PublishEvent) {
+            _SM_Log.log(3, '%c  VI');
+            tfmns = _SM_ValueInjector.update(tfmns);
+            tfmns = _SM_ConstructInjector.update(tfmns);
+            tfmns = _SM_EventBinder.update(tfmns);
+        }
+        else if (this._observedOperations.EventBindingUpdate) {
+            _SM_Log.log(3, '%c  Skipped VI, CE');
+            tfmns = _SM_Transforms.shardCurrentMirror(tfmns);
+            tfmns = _SM_EventBinder.update(tfmns);
+        }
+        else {
+            _SM_Log.log(2, '%c  Impossible Render phase.');
+        }
+        _SM_Transforms.update(tfmns);
+        if (typeof _SM_Debugger === typeof Function) {
+            // _SM_Debugger.debugStrictMode(tfmns)
+        }
+    }
+    static initPhaseRender() {
+        _SM_Log.log(3, '%c  init phase');
+        let tfmns = _SM_Transforms.transforms;
+        // FIXME: Resetting tfmns is causing problems, variables not updating.
+        if (!_SM_Transforms.transforms.length) {
+            _SM_Transforms.resetTransforms();
+            let subscribers = _SM_Manager.refreshSubs();
+            tfmns = _SM_Transforms.createTransforms(subscribers);
+        }
+        console.log(tfmns.length);
+        _SM_ExternalJS.update(tfmns);
+        _SM_ValueInjector.update(tfmns, true);
+        /*
+            Performing operations on all tfmns is important since
+            one can use constructs without value injection
+        */
+        _SM_ConstructInjector.update(tfmns);
+        _SM_EventBinder.update(tfmns);
+        tfmns = _SM_Transforms.update(tfmns);
+        return tfmns;
     }
     static showSubscribers() {
         document.querySelectorAll('._sm_HideUntilReady').forEach((element) => {

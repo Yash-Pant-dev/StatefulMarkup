@@ -58,7 +58,7 @@ class _SM_Debugger {
     static test_NoReactivity() {
 
         let offendingElements: Array<{ idx: number, element: Element }> = []
-
+        console.log(_SM_Transforms.transforms.length)
         _SM_Transforms.transforms.forEach(tfmn => {
             let idx = tfmn.element.outerHTML.indexOf('@')
             if (idx === -1) {
@@ -68,6 +68,17 @@ class _SM_Debugger {
                 })
             }
         })
+
+        if (offendingElements.length) {
+            console.log('[D]No variable in DOM tree, yet subscribed.', offendingElements)
+            this.test_Results.noReactivity.status = 'failed'
+            // @ts-ignore
+            this.test_Results.noReactivity.details = offendingElements
+        }
+        else {
+            this.test_Results.noReactivity = { status: 'passed' }
+        }
+
     }
 
     static VerboseLogging(logInterval?: number) {
@@ -94,21 +105,115 @@ class _SM_Debugger {
         return id
     }
 
-    // Checks if any function has been passed any invalid argument.
-    // static test_InvalidParameters() {
 
-    // }
+    // Do one tfmn  through the renderer, do another through init phase, check the diff.
+    static firstRenderTfmns: Array<SMTransform> = []
+    static debugStrictMode(tfmns: Array<SMTransform>) {
+        console.log('Debug strict mode.')
+        this.firstRenderTfmns = []
+
+        tfmns.forEach(tfmn => {
+            this.firstRenderTfmns.push({
+                element: tfmn.element.cloneNode(true) as Element,
+                mirror: tfmn.mirror.cloneNode(true) as Element,
+                shard: tfmn.shard?.cloneNode(true) as Element
+            })
+        })
+
+        let strictRenderTfmns: Array<SMTransform> = []
+
+        function strictRender() {
+            _SM_Log.log(3, '%c  init phase')
+
+            _SM_Transforms.resetTransforms()
+
+            let subscribers = _SM_Manager.refreshSubs()
+            strictRenderTfmns = _SM_Transforms.createTransforms(subscribers)
+            console.log('SR1', strictRenderTfmns)
+            // _SM_ExternalJS.update(strictRenderTfmns)
+            _SM_ValueInjector.update(strictRenderTfmns, true)
+            _SM_ConstructInjector.update(strictRenderTfmns)
+            _SM_EventBinder.update(strictRenderTfmns)
+            // Reconcilliation is skipped.
+            strictRenderTfmns = _SM_Transforms.update(strictRenderTfmns)
+            console.log('SR2',strictRenderTfmns)
+
+            return strictRenderTfmns
+        }
+
+        strictRender()
+
+
+
+        // @ts-ignore
+        this.test_Results.renderMismatch.details = []
+
+        if (this.firstRenderTfmns.length !== strictRenderTfmns.length) {
+            console.log('[D]Count of transforms in first and second strict mode render unequal.')
+            // @ts-ignore
+            this.test_Results.renderMismatch.details.push({ Remark: 'Count mismatch' })
+            this.test_Results.renderMismatch.status = 'failed'
+
+        }
+        else {
+            let countTfmns = strictRenderTfmns.length
+            for (let i = 0; i < countTfmns; i++) {
+                let firstHTML = this.firstRenderTfmns[i].mirror.outerHTML
+                let secondHTML = strictRenderTfmns[i].mirror.outerHTML
+
+                if (firstHTML !== secondHTML) {
+                    console.log('Mismatch in strict mode render transforms : ', firstHTML, secondHTML)
+                    this.test_Results.renderMismatch.status = 'failed'
+                    // @ts-ignore
+                    this.test_Results.renderMismatch.details.push({ firstHTML, secondHTML })
+                }
+            }
+
+            if (this.test_Results.renderMismatch.status == 'NA') {
+                this.test_Results.renderMismatch.status = 'passed'
+            }
+
+        }
+    }
+
+    /* Checks if any subscriber does not have a corresponding transform.
+    Possible when subscribers are dynamically added. */
+    static test_InvisibleSubscribers() {
+
+        let subs = document.querySelectorAll('.' + this.subscriberTag)
+        let countSubs = subs.length
+        let countTfmns = this.firstRenderTfmns.length
+
+        if (countSubs !== countTfmns) {
+            console.log('[D]' + (countSubs - countTfmns) + ' are invisible.')
+            this.test_Results.invisibleSub.status = 'failed'
+            // @ts-ignore
+            this.test_Results.invisibleSub.details = 'Differ by ' + (countSubs - countTfmns)
+        }
+        else {
+            this.test_Results.invisibleSub = { status: 'passed' }
+        }
+
+    }
 
     static test_Results = {
         nestedSubscriber: { status: 'NA' },
         unhandledEvents: { status: 'NA' },
         uninitVars: { status: 'NA' },
+        renderMismatch: { status: 'NA' },
+        noReactivity: { status: 'NA' },
+        invisibleSub: { status: 'NA' }
     }
+
+
 }
 
 document.addEventListener('RenderEvent', () => {
+    _SM_Debugger.test_NestedSubscribers()
     _SM_Debugger.test_UnhandledEvents()
     _SM_Debugger.test_UninitializedVars()
+    _SM_Debugger.test_InvisibleSubscribers()
+    _SM_Debugger.test_NoReactivity()
     console.log('Test Results:', _SM_Debugger.test_Results)
 })
 
@@ -139,14 +244,14 @@ class _SMDebugProxyClient {
             if (typeof _SM_Transforms === typeof Function) {
                 // Waits for Transforms/Engine to fully load before trying to access transforms.
                 let doesVariableExist = false
-                
+
                 _SM_Transforms.transforms.forEach(tfmn => {
                     let elm = tfmn.element
                     let idx = elm.outerHTML.indexOf(`@${variable}`)
                     if (idx !== -1)
                         doesVariableExist = true
                 })
-    
+
                 if (!doesVariableExist) {
                     console.log('[D]Variable does not exist in any subscriber', variable)
                 }
