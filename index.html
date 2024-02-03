@@ -12,6 +12,7 @@
         integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
 
     <script src="dist/StatefulMarkupClient.js"></script>
+    <script src="dist/StatefulMarkupDebugger.js"></script>
 </head>
 
 <script src="example/components/dashboard.js"></script>
@@ -62,22 +63,22 @@
                 <button type="button" class="position-absolute top-0 end-0 p-3 m-3 bg-opacity-10 rounded-pill"
                     aria-label="Read More">Read More</button>
                 <h1 class="text-body-emphasis display-2 fw-bolder">Reactivity with <div class="_sm highlight-inline">
-                        @Suffix!</div>
+                        @Variable!</div>
                 </h1>
 
                 <blockquote class="blockquote pt-5 fw-light fs-4">Change state using the SM.Update() function. The
                     framework re-renders all affected nodes containing
-                    <div class="_sm highlight-inline fw-bold">@Suffix</div>, and the updates can even be persistent
+                    <div class="_sm highlight-inline fw-bold">@Variable</div>, and the updates can even be persistent
                     across
                     refreshes!
                 </blockquote>
                 <div class="pt-2 pb-2 fs-4 lead">A single line of JS is all it needs - </div>
 
                 <div class="d-grid gap-1 d-sm-flex justify-content-sm-center pt-1 fs-3 ">
-                    SM.update("@Suffix",
+                    SM.update("@Variable",
                     <div class="mb-3">
-                        <input type="text" class="form-control suffixInput _sm" id="" placeholder=""
-                            aria-describedby=" suffix-demo" value="@Suffix" />
+                        <input type="text" class="form-control variableInput _sm" id="" placeholder=""
+                            aria-describedby=" suffix-demo" value="@Variable" />
                         <small id="suffix-demo" class="form-text fs-5">Write your name ↑</small>
                     </div>
                     )
@@ -102,7 +103,7 @@
                 </blockquote>
                 <div class="pt-2 pb-2 fs-5 lead">Toggle Authorization Status<button
                         class="auth-toggle btn btn-outline-light cond-2 fw-semibold fs-4 mx-4 _sm">
-                        @_if(@AuthStatus === false) @{
+                        @_if-plugin(@AuthStatus === false) @{
                         Sign In
                         }@
                         @_if(@AuthStatus === true) @{
@@ -339,11 +340,13 @@
             </div>
         </div>
 
-
+        <div class="landing-divider text-center p-1">
+            <img src="example/assets/DownwardPointer.png" class="mx-auto" height="100%">
+        </div>
         <!-- USP -->
-        <div class="container justify-content-center align-items-center">
+        <div class="container justify-content-center align-items-center py-5">
             <div class="position-relative my-5 p-5 text-center text-muted bg-body border border-dashed rounded-5">
-                <h1 class="text-body-emphasis display-3 fw-bolder"> Thats Cool, <div class="d-inline">But Why Should I
+                <h1 class="text-body-emphasis display-4 fw-bolder"> Thats Cool, <div class="d-inline">But Why Should I
                         Use
                         It Over <div class="text-danger d-inline">React/XYZ Framework ?</div>
                     </div>
@@ -379,7 +382,9 @@
                     And due to the orthogonal, opt-in nature of SM, you can infuse it where you need it, and keep the
                     rest of
                     your codebase completely untouched!
-
+                        <br>
+                        <br>
+                        Another reason to use Stateful Markup is when you are creating a new project with simple functionality. You don't have to take on all the baggage the comes with React, most of which will not be used at all.
                 </blockquote>
 
             </div>

@@ -5,7 +5,7 @@ type Id = number
 type QuerySelector = string
 
 interface SMEvent {
-    id: Id,
+    id: Id
     event: EventDetails
 }
 
@@ -25,14 +25,14 @@ type SMListener = {id: Id} & ListenerDetails
 interface ListenerDetails {
     selector: QuerySelector,
     onEvent: OnEvent,
-    callback: (this: Element, ev: Event) => any,
+    callback: (this: Element, ev: Event) => any
     optionalArgs: AddEventListenerOptions
 }
 type OnEvent = keyof ElementEventMap
 
 type SMExterns = {id: Id} & ExternDetails
 interface ExternDetails {
-    selector: QuerySelector,
+    selector: QuerySelector
     modifier: Function
 }
 
@@ -41,15 +41,15 @@ type SMSubscriber = Element
 
 interface SMTransform {
     id?: Id
-    element: Element,
-    mirror: Element,
-    shard: Element | null,
+    element: Element
+    mirror: Element
+    shard: Element | null
 }
 
 type SMOperation = 'Sless' | 'EvBind' | 'Pub'
 
 interface PersistingVars {
-    var: string,
+    var: string
     val: string
 }
 
@@ -59,7 +59,23 @@ interface JSONObj {
 
 interface Component {
     name: string
-    template: string,
+    template: string
     events: Array<EventDetails>
     eventListeners: Array<ListenerDetails>
+}
+
+type SMPlugin = PluginDetails & {'id': number}
+
+interface PluginDetails {
+    name: string
+    phase: 'Construct' | 'Reconcile'
+    // If Plugin works on VI Phase
+    injectionFn?: Function
+    // If Plugin works on Reconcile Phase
+    saveFn?: Function
+    reconcileFn?: Function
+}
+
+interface TestResults {
+    [key: string]: any
 }

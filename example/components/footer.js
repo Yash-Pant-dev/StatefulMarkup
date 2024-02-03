@@ -15,4 +15,4 @@ const FooterComponent = {
     events: [{ var: 'ypname', val: 'Yash Pant' }]
 }
 
-StatefulMarkupClient.registerComponent(FooterComponent)
+StatefulMarkupClient.addComponent(FooterComponent)

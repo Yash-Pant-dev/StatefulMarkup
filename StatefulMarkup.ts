@@ -61,6 +61,8 @@ class _SM_Initialization {
 */
 class _SM_Manager {
 
+    static readonly SUBSCRIBER_TAG = '_sm'
+
     static get events() {
         return StatefulMarkupClient.eventsBuffer
     }
@@ -85,8 +87,7 @@ class _SM_Manager {
         so that it can re-subscribe or needs to track a newly subscribed element.
     */
     static refreshSubs() {
-        const SM_CLASSNAME = '_sm'
-        return this._subs = Array.from(document.getElementsByClassName(SM_CLASSNAME))
+        return this._subs = Array.from(document.getElementsByClassName(this.SUBSCRIBER_TAG))
     }
 
     private static _subs: Array<SMSubscriber> = []
@@ -293,7 +294,7 @@ class _SM_ValueInjector {
 */
 class _SM_ConstructInjector {
 
-    private static content: string
+    static content: string
 
     static update(transforms: Array<SMTransform>) {
 
@@ -357,37 +358,32 @@ class _SM_ConstructInjector {
     }
 
     // Passes the evaluation to the relevant construct type.
-    private static _evaluate(start: number, retStart: number, retEnd: number) {
+    private static _evaluate(start: number, bodyStart: number, bodyEnd: number) {
 
-        let constructType = this._getConstructTag(start)
-
-        if (constructType === 'for') {
-            this._forInjection(start, retStart, retEnd)
+        let constructTag = this._getConstructTag(start)
+        
+        switch (constructTag) {
+            case 'for':
+                this._forInjection(start, bodyStart, bodyEnd)
+                break
+            case 'if':
+                this._ifInjection(start, bodyStart, bodyEnd)
+                break
+            default: // Not a basic if / for construct but posxsibly a plugin
+                const pluginIndex = _SM_PluginHelper.findPlugin(constructTag, 'Construct')
+                // Not present in plugins also, hence invalid construct.
+                if (pluginIndex === -1) throw Error('Invalid Construct Name - ' + constructTag)
+                
+                _SM_PluginHelper.plugins[pluginIndex].injectionFn?.(start, bodyStart, bodyEnd)
         }
-        else if (constructType === 'if') {
-            this._ifInjection(start, retStart, retEnd)
-        }
-        else throw Error('Invalid constructType')
     }
 
     private static _getConstructTag(idx: number) {
 
-        let constructName = ''
-        for (let i = idx; i < this.content.length; i++) {
-            constructName += this.content[i]
-            switch (constructName) {
-                case '@_for': {
-                    return 'for'
-                }
-                case '@_if': {
-                    return 'if'
-                }
-                default:
-                    break
-            }
-        }
+        let headerBracketStart = this.content.substring(idx).indexOf('(') + idx
+        let constructTag = this.content.substring(idx + 2, headerBracketStart).trim()
 
-        throw Error('No construct found')
+        return constructTag
     }
 
     /* 
@@ -431,7 +427,7 @@ class _SM_ConstructInjector {
 
     private static _ifInjection(start: number, retStart: number, retEnd: number) {
 
-        const forTagLen = 4 // @_for
+        const forTagLen = 4 // @_if
         let header = this.content.substring(start + forTagLen, retStart).trim()
         header = header.substring(1, header.length - 1)
 
@@ -586,8 +582,8 @@ class _SM_Engine {
 
         if (this.rendererIntrinsics.phase === 'idle') {
 
-            /* A setTimeout is often of the order of ms, so batch rendering is irrelevant if target
-             framerate is greater than 120ms */
+            /* A setTimeout is often of the order of milliseconds, so batch rendering may be irrelevant if target
+             framerate is greater than 144ps */
             if (StatefulMarkupConfig.isBatchRendered && this.rendererIntrinsics.targetFramerate <= 144) {
                 this.rendererIntrinsics.phase = 'wait'
 
@@ -603,7 +599,7 @@ class _SM_Engine {
             }
         }
 
-
+        // TODO: Explain why certain phases are not utilized in different situations.
         if (this.rendererIntrinsics.phase === 'start') {
             _SM_Log.log(3, '%c  StartPhase')
             let tfmns = _SM_Transforms.transforms
@@ -729,25 +725,40 @@ class _SM_Reconcilliation {
                     this.saveInputState(evt)
                     break
                 default:
-                    _SM_Log.log(2, 'Saving state not defined for type - ' + evt.on)
+                    // A plugin might possibly handle this save event.
+                    const pluginIndex = _SM_PluginHelper.findPlugin(evt.on, 'Reconcile')
+                    
+                    if (pluginIndex === -1) {
+                        _SM_Log.log(2, '%c  Saving state not defined for type - ' + evt.on)
+                        break
+                    }
+                    _SM_PluginHelper.plugins[pluginIndex].saveFn?.(evt)
+                    break
             }
         })
     }
 
     static reconcile() {
 
-        this._savedStates.forEach((save) => {
+        this.savedStates.forEach((save) => {
 
             switch (save.on) {
                 case 'input-text':
                     this.reconcileInputState(save)
                     break;
                 default:
-                    _SM_Log.log(2, 'Reconcile not implemented for - ' + save.selector)
+                    // A plugin might possibly handle this save event.
+                    const pluginIndex = _SM_PluginHelper.findPlugin(save.on, 'Reconcile')
+                    if (pluginIndex === -1) {
+                        _SM_Log.log(2, 'Reconciling state not defined for type - ' + save.on)
+                        break
+                    }
+                    _SM_PluginHelper.plugins[pluginIndex].reconcileFn?.(save)
+                    break
             }
         })
 
-        this._savedStates = []
+        this.savedStates = []
     }
 
     static saveInputState(evt: ReconcilliationEvent) {
@@ -764,7 +775,7 @@ class _SM_Reconcilliation {
         currentState.selectionStart = element.selectionStart
         // @ts-ignore
         currentState.selectionEnd = element.selectionEnd
-        this._savedStates.push(currentState)
+        this.savedStates.push(currentState)
     }
 
     static reconcileInputState(save: ReconcilliationEvent) {
@@ -787,7 +798,26 @@ class _SM_Reconcilliation {
     }
 
     private static _savedTargets: Array<RecTarget> = []
-    private static _savedStates: Array<EventDetails> = []
+    static savedStates: Array<EventDetails> = []
+}
+
+class _SM_PluginHelper {
+
+    static findPlugin(name: string, phase: 'Reconcile' | 'Construct') {
+        let plgIndex = 0
+
+        for (const plg of StatefulMarkupClient.plugins) {
+            if (plg.name === name && plg.phase === phase) {
+                return plgIndex
+            }
+            plgIndex++
+        }
+        return -1
+    }
+
+    static get plugins() {
+        return StatefulMarkupClient.plugins
+    }
 }
 
 class _SM_Log {
@@ -810,3 +840,5 @@ class _SM_Log {
         }
     }
 }
+
+document.dispatchEvent(new Event('EngineLoaded'))

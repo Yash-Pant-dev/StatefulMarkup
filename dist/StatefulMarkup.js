@@ -68,10 +68,10 @@ class _SM_Manager {
         so that it can re-subscribe or needs to track a newly subscribed element.
     */
     static refreshSubs() {
-        const SM_CLASSNAME = '_sm';
-        return this._subs = Array.from(document.getElementsByClassName(SM_CLASSNAME));
+        return this._subs = Array.from(document.getElementsByClassName(this.SUBSCRIBER_TAG));
     }
 }
+_SM_Manager.SUBSCRIBER_TAG = '_sm';
 _SM_Manager._subs = [];
 class _SM_Transforms {
     /*
@@ -284,33 +284,28 @@ class _SM_ConstructInjector {
         return [start, bodyStart, bodyEnd];
     }
     // Passes the evaluation to the relevant construct type.
-    static _evaluate(start, retStart, retEnd) {
-        let constructType = this._getConstructTag(start);
-        if (constructType === 'for') {
-            this._forInjection(start, retStart, retEnd);
+    static _evaluate(start, bodyStart, bodyEnd) {
+        var _b, _c;
+        let constructTag = this._getConstructTag(start);
+        switch (constructTag) {
+            case 'for':
+                this._forInjection(start, bodyStart, bodyEnd);
+                break;
+            case 'if':
+                this._ifInjection(start, bodyStart, bodyEnd);
+                break;
+            default: // Not a basic if / for construct but posxsibly a plugin
+                const pluginIndex = _SM_PluginHelper.findPlugin(constructTag, 'Construct');
+                // Not present in plugins also, hence invalid construct.
+                if (pluginIndex === -1)
+                    throw Error('Invalid Construct Name - ' + constructTag);
+                (_c = (_b = _SM_PluginHelper.plugins[pluginIndex]).injectionFn) === null || _c === void 0 ? void 0 : _c.call(_b, start, bodyStart, bodyEnd);
         }
-        else if (constructType === 'if') {
-            this._ifInjection(start, retStart, retEnd);
-        }
-        else
-            throw Error('Invalid constructType');
     }
     static _getConstructTag(idx) {
-        let constructName = '';
-        for (let i = idx; i < this.content.length; i++) {
-            constructName += this.content[i];
-            switch (constructName) {
-                case '@_for': {
-                    return 'for';
-                }
-                case '@_if': {
-                    return 'if';
-                }
-                default:
-                    break;
-            }
-        }
-        throw Error('No construct found');
+        let headerBracketStart = this.content.substring(idx).indexOf('(') + idx;
+        let constructTag = this.content.substring(idx + 2, headerBracketStart).trim();
+        return constructTag;
     }
     /*
         Injects variables to @_x.properties collected from the array of objects in the
@@ -343,7 +338,7 @@ class _SM_ConstructInjector {
         this.content = modifiedContent;
     }
     static _ifInjection(start, retStart, retEnd) {
-        const forTagLen = 4; // @_for
+        const forTagLen = 4; // @_if
         let header = this.content.substring(start + forTagLen, retStart).trim();
         header = header.substring(1, header.length - 1);
         let isConditionTrue = false;
@@ -466,8 +461,8 @@ class _SM_Engine {
     }
     static renderer() {
         if (this.rendererIntrinsics.phase === 'idle') {
-            /* A setTimeout is often of the order of ms, so batch rendering is irrelevant if target
-             framerate is greater than 120ms */
+            /* A setTimeout is often of the order of milliseconds, so batch rendering may be irrelevant if target
+             framerate is greater than 144ps */
             if (StatefulMarkupConfig.isBatchRendered && this.rendererIntrinsics.targetFramerate <= 144) {
                 this.rendererIntrinsics.phase = 'wait';
                 setTimeout(() => {
@@ -480,6 +475,7 @@ class _SM_Engine {
                 this.rendererIntrinsics.phase = 'start';
             }
         }
+        // TODO: Explain why certain phases are not utilized in different situations.
         if (this.rendererIntrinsics.phase === 'start') {
             _SM_Log.log(3, '%c  StartPhase');
             let tfmns = _SM_Transforms.transforms;
@@ -582,26 +578,42 @@ class _SM_Reconcilliation {
         });
         _SM_Manager.events = unprocessedEvents;
         this._savedTargets.forEach((evt) => {
+            var _b, _c;
             switch (evt.on) {
                 case 'input-text':
                     this.saveInputState(evt);
                     break;
                 default:
-                    _SM_Log.log(2, 'Saving state not defined for type - ' + evt.on);
+                    // A plugin might possibly handle this save event.
+                    const pluginIndex = _SM_PluginHelper.findPlugin(evt.on, 'Reconcile');
+                    if (pluginIndex === -1) {
+                        _SM_Log.log(2, '%c  Saving state not defined for type - ' + evt.on);
+                        break;
+                    }
+                    (_c = (_b = _SM_PluginHelper.plugins[pluginIndex]).saveFn) === null || _c === void 0 ? void 0 : _c.call(_b, evt);
+                    break;
             }
         });
     }
     static reconcile() {
-        this._savedStates.forEach((save) => {
+        this.savedStates.forEach((save) => {
+            var _b, _c;
             switch (save.on) {
                 case 'input-text':
                     this.reconcileInputState(save);
                     break;
                 default:
-                    _SM_Log.log(2, 'Reconcile not implemented for - ' + save.selector);
+                    // A plugin might possibly handle this save event.
+                    const pluginIndex = _SM_PluginHelper.findPlugin(save.on, 'Reconcile');
+                    if (pluginIndex === -1) {
+                        _SM_Log.log(2, 'Reconciling state not defined for type - ' + save.on);
+                        break;
+                    }
+                    (_c = (_b = _SM_PluginHelper.plugins[pluginIndex]).reconcileFn) === null || _c === void 0 ? void 0 : _c.call(_b, save);
+                    break;
             }
         });
-        this._savedStates = [];
+        this.savedStates = [];
     }
     static saveInputState(evt) {
         let currentState = { on: 'input-text', selector: evt.selector };
@@ -614,7 +626,7 @@ class _SM_Reconcilliation {
         currentState.selectionStart = element.selectionStart;
         // @ts-ignore
         currentState.selectionEnd = element.selectionEnd;
-        this._savedStates.push(currentState);
+        this.savedStates.push(currentState);
     }
     static reconcileInputState(save) {
         let element = document.querySelector(save.selector);
@@ -631,7 +643,22 @@ class _SM_Reconcilliation {
     }
 }
 _SM_Reconcilliation._savedTargets = [];
-_SM_Reconcilliation._savedStates = [];
+_SM_Reconcilliation.savedStates = [];
+class _SM_PluginHelper {
+    static findPlugin(name, phase) {
+        let plgIndex = 0;
+        for (const plg of StatefulMarkupClient.plugins) {
+            if (plg.name === name && plg.phase === phase) {
+                return plgIndex;
+            }
+            plgIndex++;
+        }
+        return -1;
+    }
+    static get plugins() {
+        return StatefulMarkupClient.plugins;
+    }
+}
 class _SM_Log {
     static log(severity, message) {
         if (severity === 1) {
@@ -650,3 +677,4 @@ class _SM_Log {
 _SM_Log._colorSev1 = 'color: yellow';
 _SM_Log._colorSev2 = 'color: red';
 _SM_Log._colorSev3 = 'color: green';
+document.dispatchEvent(new Event('EngineLoaded'));

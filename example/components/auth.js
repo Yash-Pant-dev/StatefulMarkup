@@ -7,4 +7,4 @@ const AuthComponent = {
     `
 }
 
-StatefulMarkupClient.registerComponent(AuthComponent)
+StatefulMarkupClient.addComponent(AuthComponent)

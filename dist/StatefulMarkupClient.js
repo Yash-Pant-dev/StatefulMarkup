@@ -59,9 +59,9 @@ class StatefulMarkupClient {
         StatefulMarkupClient._informEngine('Sless');
     }
     /*
-        Registers the components provided to the framework on the Engine.
+        Adds the components provided to the framework on the Engine.
     */
-    static registerComponent(cmp) {
+    static addComponent(cmp) {
         var _a, _b;
         (_a = cmp.events) === null || _a === void 0 ? void 0 : _a.forEach(evt => StatefulMarkupClient._eventsBuffer.push({
             id: StatefulMarkupClient._eventId++,
@@ -89,11 +89,39 @@ class StatefulMarkupClient {
         }
         StatefulMarkupClient._informEngine('Pub');
     }
+    /* Extend functionality using plugins */
+    addPlugins(plugins) {
+        plugins.forEach(plugin => {
+            switch (plugin.phase) {
+                case "Construct":
+                    StatefulMarkupClient._plugins.push({
+                        id: StatefulMarkupClient._pluginId++,
+                        name: plugin.name,
+                        phase: 'Construct',
+                        injectionFn: plugin.injectionFn
+                    });
+                    break;
+                case "Reconcile":
+                    StatefulMarkupClient._plugins.push({
+                        id: StatefulMarkupClient._pluginId++,
+                        name: plugin.name,
+                        phase: 'Reconcile',
+                        saveFn: plugin.saveFn,
+                        reconcileFn: plugin.reconcileFn
+                    });
+                    break;
+                default:
+                    console.log('Plugins not yet implementable for this phase:', plugin.phase);
+                    break;
+            }
+        });
+    }
     static _informEngine(operation) {
         if (typeof _SM_Engine === typeof Function) {
             _SM_Engine.inform(operation);
         }
     }
+    // Get the current variable mapping used for variable injection.
     currentState(variable) {
         return _SM_ValueInjector._getMapping().get(variable);
     }
@@ -112,24 +140,8 @@ class StatefulMarkupClient {
     static get statelessUpdates() {
         return this._statelessUpdates;
     }
-    static _dumpLogs() {
-        console.groupCollapsed("StatefulMarkup Logs - t elapsed:", (Date.now() - this.INIT_TIME) / 1000);
-        console.groupCollapsed("PubSub");
-        console.log(StatefulMarkupClient.eventsBuffer);
-        console.log(StatefulMarkupClient.eventListeners);
-        console.log(StatefulMarkupClient.statelessUpdates);
-        console.groupEnd();
-        if (typeof _SM_Engine !== undefined) {
-            console.groupCollapsed("Engine");
-            console.log(_SM_Transforms.transforms);
-            console.log(_SM_ValueInjector._getMapping());
-            console.groupEnd();
-            console.groupCollapsed("Renderer");
-            console.log(_SM_Engine.rendererIntrinsics);
-            console.log(_SM_Engine._observedOperations);
-            console.groupEnd();
-        }
-        console.groupEnd();
+    static get plugins() {
+        return this._plugins;
     }
 }
 StatefulMarkupClient._eventsBuffer = [];
@@ -138,7 +150,8 @@ StatefulMarkupClient._eventListeners = [];
 StatefulMarkupClient._listenerId = 1;
 StatefulMarkupClient._statelessUpdates = [];
 StatefulMarkupClient._updateId = 1;
-StatefulMarkupClient.INIT_TIME = Date.now();
+StatefulMarkupClient._plugins = [];
+StatefulMarkupClient._pluginId = 1;
 /*
     Contains configurable variables for framework behaviour, mostly useful for debugging.
 */
@@ -150,6 +163,6 @@ class StatefulMarkupConfig {
     }
 }
 StatefulMarkupConfig.DEBUG_MODE = false;
-StatefulMarkupConfig.DEBUG_LOGS = false; // Verbose logging.
+StatefulMarkupConfig.DEBUG_LOGS = false; // Log warnings.
 StatefulMarkupConfig.DISABLE_BATCH_RENDERER = false; // If false, updates are not batched for performance.
 StatefulMarkupConfig.TARGET_FRAMERATE = 60;
