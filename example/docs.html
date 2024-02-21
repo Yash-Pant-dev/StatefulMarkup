@@ -86,6 +86,35 @@
                     <h1 class="text-body-emphasis display-1 lead">Documentation
                     </h1>
                     <div class="text-start">
+
+                        <div class="display-5 py-4 heading">General Ideas</div>
+                        Stateful Markup is a framework that does not work on existing popular territories. It is built with it's peculiar market in mind, and therefore, takes some unique paths to get there.
+                        <br>
+                        At a bird's eye view, these are roughly the stages it follows -
+                        <li>Identifying DOM trees that have opted into reactivity</li>
+                        <li>Cloning said trees, and making the clones be the ones getting displayed. The originals are just there for reference now.</li>
+                        <li>Waiting for an update to occur to startup the Engine and Renderer.</li>
+                        <li>Replacing the cloned tree's variables with the new values</li>
+                        <li>Saving and reconciling state such as focused elements, text selected in a textbox and so on</li>
+                        <li>Displaying the edited DOM tree by replacing the currently displayed DOM tree.</li>
+                        <!-- Link to double buffering here -->
+
+
+                        <div class="display-5 py-4 heading">Why do we need copies of original DOM tree?</div>
+                        There are essentially two types of DOM trees needed for rendering, but we use three, and I'll explain why that is shortly. 
+                        <br>
+                        The Elements Tree - This is basically a reference DOM tree that the framework uses to keep track of where the variables are all located. If we did not save this, then after any variable was replaced, ie. '@name' with 'yash', next time @name had an update we wouldn't be able to find the @name variable in the DOM tree. We need to ensure we dont lose the positions of all variables and hence the reference tree is critical.
+                        <br>
+                        The Mirror & Shard - These are two copies of the DOM tree, the mirror is the one currently under display and the Shard is the one that gets edited whenever a new update occurs. The reason we keep two copies is for the purpose of double buffering so that the user has consistent view into the app.
+                        <div class="display-5 py-4 heading">What is Double Buffering and why do we need it?</div>
+                        Lets try to understand the need of double buffering with an example. <br>
+                        Imagine a picture of a red house being displayed on an app you are browsing. The app receives a command to change the color of the walls of the house to green [just like we update the variables in SM]. Now, the app will slowly paint over the walls of the house, and during this time frame, you would be able to see half painted walls in red and green. Thats an inconsistent state.
+                        <br> Instead of doing all that, what if I make a copy of the house ( I know that sounds ridiculous :) ) and once all the painting was done replaced the red house with the green one ? That would make it so that you would see the house in a complete state all the time rather in a weird half painted state.
+                        <br>
+                        This is what double buffering achieves. We keep two sets of DOM trees (houses in our previous analogy) and paint one of them when an update arrives, and replace the old DOM tree with the new one when the update has finished. This leads to a more consistent viewing experience.
+                        <br>
+                        Read more about it here: https://en.wikipedia.org/wiki/Multiple_buffering#External_links
+
                         <div class="display-5 py-4 heading">What are Subscribers?</div>
                         The framework works on a Pub-Sub like model. Subscribers are those HTML tags which contain the
                         special "_sm" class, which grants them visibility to the framework and
@@ -172,10 +201,23 @@
 
                         The framework stores an unaltered copy of them, and then clones them to add reactivity to them,
                         and <b>only modifies and displays these clones.</b>
-                        * Note that this means that before the JS files load, the user can catch a glimpse of the
-                        original
-                        text, but this should be momentary. However you can hide these elements until they are ready.
-
+                        <div class="accordion py-3" id="accordionPanelsStayOpenExample">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#panelsStayOpen-collapsehur" aria-expanded="false"
+                                        aria-controls="panelsStayOpen-collapsehur">
+                                        Hide Until Ready
+                                    </button>
+                                </h2>
+                                <div id="panelsStayOpen-collapsehur" class="accordion-collapse collapse">
+                                    <div class="accordion-body">
+                                        Before the JS has a chance to load, the user might see a momentary flash of elements that have not yet had the chance to get injected in their '@Var-name' form. To stop this, use <code>class="_sm_HideUntilReady" style="opacity: 0;"</code> either on the body(does not have to be a subscriber) to hide the entire body until ready or on each subscriber individually. 
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+<!-- TODO: Double buffering explanation. -->
                         <div class="display-6 py-2 sub-heading">Mirrors</div>
                         Mirrors are the DOM trees that are currently being displayed to the user. When you push an
                         update,
@@ -365,7 +407,7 @@
                         tradeoff in performance).
 
 
-                        They allow markup and event listeners for the footer, the nav-bar, dashboard components and
+                        They allow ma   rkup and event listeners for the footer, the nav-bar, dashboard components and
                         other oft-repeated items to be written once, imported anywhere, leading to a cleaner code-base.
                         They also couple the state, events handling and the markup together, so there is just a single
                         source of truth for such stuff.

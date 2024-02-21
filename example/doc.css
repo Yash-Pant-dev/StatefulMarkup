@@ -18,3 +18,15 @@
     display: inline;
     color: var(--secondary)
 }
+
+.heading {
+    color: var(--primary);
+}
+
+.accordion-button {
+    color: var(--secondary);
+}
+
+.text-white {
+    color: var(--green) !important
+}

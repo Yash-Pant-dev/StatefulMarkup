@@ -43,7 +43,6 @@ class _SM_Debugger {
     // add reactivity through external stateless manipulation.
     static test_NoReactivity() {
         let offendingElements = [];
-        console.log(_SM_Transforms.transforms.length);
         _SM_Transforms.transforms.forEach(tfmn => {
             let idx = tfmn.element.outerHTML.indexOf('@');
             if (idx === -1) {
@@ -63,7 +62,7 @@ class _SM_Debugger {
             this.test_Results.noReactivity = { status: 'passed' };
         }
     }
-    static VerboseLogging(logInterval) {
+    static verboseLogging(logInterval) {
         let id = setInterval(() => {
             console.groupCollapsed("StatefulMarkup Logs - t elapsed:", (Date.now() - this.INIT_TIME) / 1000);
             console.groupCollapsed("PubSub");
@@ -120,6 +119,7 @@ class _SM_Debugger {
             // @ts-ignore
             this.test_Results.renderMismatch.details.push({ Remark: 'Count mismatch' });
             this.test_Results.renderMismatch.status = 'failed';
+            console.log(this.firstRenderTfmns, strictRenderTfmns);
         }
         else {
             let countTfmns = strictRenderTfmns.length;
@@ -173,26 +173,31 @@ document.addEventListener('RenderEvent', () => {
     _SM_Debugger.test_UninitializedVars();
     _SM_Debugger.test_InvisibleSubscribers();
     _SM_Debugger.test_NoReactivity();
-    console.log('Test Results:', _SM_Debugger.test_Results);
+    console.groupCollapsed('%c Test Results:', 'color:red');
+    console.table(_SM_Debugger.test_Results, ['status']);
+    console.groupCollapsed('Detailed Results - ');
+    console.log(_SM_Debugger.test_Results);
+    console.groupEnd();
+    console.groupEnd();
 });
 /*
     The ProxyClient checks for input types and also ensures no deviations in properties
     of an object, which typically indicate common misspellings/wrong function
     calls (since no typesafety in js)
 */
-class _SMDebugProxyClient {
+class SMDebugClient {
     constructor(...args) {
         console.log("StatefulMarkup Debug Client initialized -v0.1", ...args);
     }
     publish(newEvent) {
-        if (_SMDebugProxyClient.expectedPropertiesOnly(newEvent, ['var', 'val', 'type', 'selector', 'on']))
-            _SMDebugProxyClient.SMClient.publish(newEvent);
+        if (SMDebugClient.expectedPropertiesOnly(newEvent, ['var', 'val', 'type', 'selector', 'on']))
+            SMDebugClient.SMClient.publish(newEvent);
         else
             console.log('[D]Unexpected Properties in publish arg', newEvent);
     }
     update(variable, value) {
         if (typeof variable === typeof '' && typeof value === typeof '') {
-            _SMDebugProxyClient.SMClient.update(variable, value);
+            SMDebugClient.SMClient.update(variable, value);
             if (typeof _SM_Transforms === typeof Function) {
                 // Waits for Transforms/Engine to fully load before trying to access transforms.
                 let doesVariableExist = false;
@@ -213,7 +218,7 @@ class _SMDebugProxyClient {
     addListener(selector, onEvent, callback, optionalArgs) {
         if (typeof selector === typeof '' && typeof onEvent === typeof ''
             && typeof callback === typeof Function && typeof optionalArgs === typeof {}) {
-            _SMDebugProxyClient.SMClient.addListener(selector, onEvent, callback, optionalArgs);
+            SMDebugClient.SMClient.addListener(selector, onEvent, callback, optionalArgs);
             let matches = document.querySelector(selector);
             if (matches === null) {
                 console.log('[D]No selected element in AddListener', selector);
@@ -224,7 +229,7 @@ class _SMDebugProxyClient {
     }
     addExternalManipulation(selector, modifier) {
         if (typeof selector === typeof '' && typeof modifier === typeof Function) {
-            _SMDebugProxyClient.SMClient.addExternalManipulation(selector, modifier);
+            SMDebugClient.SMClient.addExternalManipulation(selector, modifier);
             let matches = document.querySelector(selector);
             if (matches === null) {
                 console.log('[D]No selected element in AddListener', selector);
@@ -241,8 +246,8 @@ class _SMDebugProxyClient {
     }
     addPlugins(plugins) {
         plugins.forEach(plg => {
-            if (_SMDebugProxyClient.expectedPropertiesOnly(plg, ['name', 'phase', 'saveFn', 'reconcileFn', 'injectionFn'])) {
-                _SMDebugProxyClient.SMClient.addPlugins([plg]);
+            if (SMDebugClient.expectedPropertiesOnly(plg, ['name', 'phase', 'saveFn', 'reconcileFn', 'injectionFn'])) {
+                SMDebugClient.SMClient.addPlugins([plg]);
             }
             else {
                 console.log('[D]Unexpected properties in addPlugins', plg);
@@ -251,7 +256,7 @@ class _SMDebugProxyClient {
     }
     currentState(variable) {
         if (typeof variable === typeof '') {
-            return _SMDebugProxyClient.SMClient.currentState(variable);
+            return SMDebugClient.SMClient.currentState(variable);
         }
         else
             console.log('[D]Bad Types in currentState call', variable);
@@ -269,4 +274,4 @@ class _SMDebugProxyClient {
         return true;
     }
 }
-_SMDebugProxyClient.SMClient = new StatefulMarkupClient();
+SMDebugClient.SMClient = new StatefulMarkupClient();

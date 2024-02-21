@@ -1,5 +1,5 @@
-// const SM = new _SMDebugProxyClient('example.js')
-const SM = new StatefulMarkupClient('example.js')
+const SM = new SMDebugClient('example.js')
+// const SM = new StatefulMarkupClient('example.js')
 StatefulMarkupConfig.DEBUG_LOGS = true
 
 
@@ -61,14 +61,12 @@ function pluginSaveInputState(evt) {
 }
 
 function pluginReconcileInputState(save) {
-    console.log('Reconcile plugin called DBG')
     let element = document.querySelector(save.selector)
 
     if (element === null)
         return _SM_Log.log(2, 'Cannot find element to reconcile - ' + save.selector)
 
     if (save.wasFocused === 'true') {
-        console.log('was focused.');
         (element).focus()
     }
 

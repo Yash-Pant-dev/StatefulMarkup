@@ -102,6 +102,9 @@ class _SM_Transforms {
         return this._transforms;
     }
     static resetTransforms() {
+        this._transforms.forEach(tfmn => {
+            tfmn.mirror.replaceWith(tfmn.element);
+        });
         this._transforms = [];
     }
     /*
@@ -193,6 +196,7 @@ class _SM_ValueInjector {
     /*
         An optional map can be passed which replaces the search string with entries
         in the map, instead of _varMap.
+        FIXME: Component replace should restart the var replace process.
     */
     static _replacer(input, map) {
         let output = input;
@@ -238,7 +242,12 @@ class _SM_ConstructInjector {
             if (!tfmn.shard)
                 [tfmn] = _SM_Transforms.shardCurrentMirror([tfmn]);
             this.content = tfmn.shard.innerHTML;
-            this.parseConstructs();
+            try {
+                this.parseConstructs();
+            }
+            catch (e) {
+                _SM_Log.log(2, 'Error in construct Injection, DOM content :' + this.content);
+            }
             tfmn.shard.innerHTML = this.content;
         });
         _SM_Log.log(1, '%c  Construct Injector update');
@@ -246,9 +255,16 @@ class _SM_ConstructInjector {
     }
     // Identifies and evaluates all constructs in code.
     static parseConstructs() {
+        // Limits number of times a constructs that can are evaluated in DOM Tree.
+        // Often exceeded when erroneous syntax is used, and the construct is not resolved in a pass.
+        const MAX_CONSTRUCTS = 100;
+        let constructsFound = 0;
         while (this.containsConstruct()) {
             let [start, retStart, retEnd] = this._getMarkers();
             this._evaluate(start, retStart, retEnd);
+            constructsFound++;
+            if (constructsFound === MAX_CONSTRUCTS)
+                break;
         }
     }
     static containsConstruct() {
@@ -457,11 +473,11 @@ class _SM_Engine {
                 break;
         }
         // TODO: Uncomment
-        // if (this.rendererIntrinsics.phase === 'idle')
-        _a.renderer();
+        if (this.rendererIntrinsics.phase === 'idle')
+            _a.renderer();
     }
     static renderer() {
-        if (this.rendererIntrinsics.phase === 'idle' || this.rendererIntrinsics.phase === 'wait') {
+        if (this.rendererIntrinsics.phase === 'idle') {
             /* A setTimeout is often of the order of milliseconds, so batch rendering may be irrelevant if target
              framerate is greater than 144fps */
             if (StatefulMarkupConfig.isBatchRendered && this.rendererIntrinsics.targetFramerate <= 144) {
@@ -477,6 +493,7 @@ class _SM_Engine {
             }
         }
         _SM_Reconcilliation.saveState();
+        // All renders after the first one
         if (this.rendererIntrinsics.phase === 'start') {
             let tfmns = _SM_Transforms.transforms;
             this.startPhaseRender(tfmns);
@@ -492,7 +509,7 @@ class _SM_Engine {
         document.dispatchEvent(new Event('RenderEvent'));
         _SM_Log.log(1, '%c  Render phase finished.');
         this.rendererIntrinsics.frameNumber++;
-        this.rendererIntrinsics.phase = 'init';
+        this.rendererIntrinsics.phase = 'idle';
     }
     static startPhaseRender(tfmns) {
         // TODO: Explain why certain phases are not utilized in different situations.
@@ -527,19 +544,19 @@ class _SM_Engine {
         }
         _SM_Transforms.update(tfmns);
         if (typeof _SM_Debugger === typeof Function) {
-            // _SM_Debugger.debugStrictMode(tfmns)
+            _SM_Debugger.debugStrictMode(tfmns);
         }
     }
     static initPhaseRender() {
         _SM_Log.log(3, '%c  init phase');
         let tfmns = _SM_Transforms.transforms;
         // FIXME: Resetting tfmns is causing problems, variables not updating.
+        // Thats because reference to mirror is lost and cannot be replaced
         if (!_SM_Transforms.transforms.length) {
             _SM_Transforms.resetTransforms();
             let subscribers = _SM_Manager.refreshSubs();
             tfmns = _SM_Transforms.createTransforms(subscribers);
         }
-        console.log(tfmns.length);
         _SM_ExternalJS.update(tfmns);
         _SM_ValueInjector.update(tfmns, true);
         /*

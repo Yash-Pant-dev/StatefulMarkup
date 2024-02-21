@@ -12,7 +12,7 @@
         integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
 
     <script src="dist/StatefulMarkupClient.js"></script>
-    <!-- <script src="dist/StatefulMarkupDebugger.js"></script> -->
+    <script src="dist/StatefulMarkupDebugger.js"></script>
 </head>
 
 <script src="example/components/dashboard.js"></script>
@@ -135,7 +135,7 @@
                     </div>
                     <div class="col _sm">
                         @_if(@AuthStatus === true) @{
-                        @@Dashboard
+                            @@Dashboard
                         }@
                     </div>
                 </div>
@@ -329,7 +329,7 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="fs-2 text-body-emphasis display-5">Wasteless DOM updates</h3>
+                        <h3 class="fs-2 text-body-emphasis display-5">Pruned DOM updates</h3>
                         <p>Stateless Markup only remakes those DOM trees that get affected by any given set of updates,
                             so there are no wasted CPU cyles.</p>
                         <a href="#" class="btn btn-success">

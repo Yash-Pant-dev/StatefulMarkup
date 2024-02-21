@@ -13,7 +13,6 @@ const DashboardComponent = {
         }
     }],
     events: [],
-    lol: false
 }
 
 StatefulMarkupClient.addComponent(DashboardComponent)
