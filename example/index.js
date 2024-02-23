@@ -1,5 +1,5 @@
-const SM = new SMDebugClient('example.js')
-// const SM = new StatefulMarkupClient('example.js')
+// const SM = new SMDebugClient('example.js')
+const SM = new StatefulMarkupClient('example.js')
 StatefulMarkupConfig.DEBUG_LOGS = true
 
 

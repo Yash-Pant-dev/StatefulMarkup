@@ -35,7 +35,7 @@
                 <span class="fs-2 cond-2">Documentation</span>
             </a>
             <hr>
-            <ul class="nav nav-pills flex-column mb-auto">
+            <ul class="nav nav-pills flex-column mb-auto fs-4 lead">
                 <li class="nav-item">
                     <a href="#" class="nav-link active" aria-current="page">
                         Overview
@@ -98,6 +98,17 @@
                             Stateful Markup is a framework that is designed to integrate and supercharge existing large
                             or new vanilla js projects.
                             <br>
+                            To that effect, it tries to do a select few really common things, but do them well.
+                            <li>State and Reactivity</li>
+                            <li>Components</li>
+                            <li>Performant Batched Rendering</li>
+                            <li>Easy extensibility (Plugin system)</li>
+                            <br>
+                        <div class="cond-2">These are probably some of the major reasons why some developers are forced
+                            to migrate to frameworks, and I hope having such a direct way to get these select features
+                            makes for a better DX if that's you.
+                        </div>
+                        <br>
                         </p>
                         <p>
                             At a high level, the framework progresses through the following stages:
@@ -649,7 +660,8 @@
                             </div>
                         </div>
                         <!-- TODO: Write functions like publish and external dom manip, and give examples. -->
-                        <div class="display-5 py-4 heading">Reconciliation Phase <strong class="text-danger"> !</strong>
+                        <div class="display-5 py-4 heading">Reconciliation Phase <strong class="text-danger fs-3">
+                                WIP</strong>
                         </div>
                         <p>
                             When a DOM tree is cloned, it does not preserve certain states like the focused element, a
