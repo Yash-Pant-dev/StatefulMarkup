@@ -2,9 +2,9 @@
 
 ## A quick and easy way to inject Reactivity, Components, Conditionals and Performant Rendering into vanilla JS projects
 
-Have a large complex vanilla-js project and that would be so much more manageable to develop with React, but don't want to migrate?
+Have a large complex vanilla-js project and that would be so much more manageable to develop with React/XYZ, but don't want to migrate?
     
-    Or
+Or
 
 Making a small new project and don't want to take on all the dependencies and the slowdowns due to a large framework or library?
 
@@ -13,7 +13,7 @@ This framework allows you to inject state into your existing markup with no work
 ### And the system is entirely opt-in, so you can supercharge only specific DOM trees if you wish.
 
 # Features -
-    1. Reactivity & State
+    1. Reactivity & State + Persisting State on Refresh
     2. Component System 
     3. If and For loops [Supports Conditional Rendering & List Expansion]
     3. Batched Rendering
@@ -21,4 +21,4 @@ This framework allows you to inject state into your existing markup with no work
     5. Debugger
     6. All in less than 20 kbs & 1500 LoC!
 
-Interested ? Read More at [https://yash-pant-dev.github.io/StatefulMarkup/index.html]
+## Interested ? Read More at [https://yash-pant-dev.github.io/StatefulMarkup/index.html]

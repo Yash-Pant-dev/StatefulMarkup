@@ -38,42 +38,52 @@
             <hr>
             <ul class="nav nav-pills flex-column mb-auto fs-4 lead">
                 <li class="nav-item">
-                    <a href="#" class="nav-link active" aria-current="page">
+                    <a href="#gen-idea" class="nav-link text-green" aria-current="page">
                         Overview
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link text-white">
+                    <a href="#subs" class="nav-link text-green">
                         Opting In With Subs
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link text-white">
+                    <a href="#trans" class="nav-link text-green">
                         Transformation & Buffering
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link text-white">
+                    <a href="#ep" class="nav-link text-green">
                         Engine Phases
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link text-white">
+                    <a href="#brendering" class="nav-link text-green">
+                        Batched Rendering
+                    </a>
+                </li>
+                <li>
+                    <a href="#ortho" class="nav-link text-green">
+                        Orthogonality
+                    </a>
+                </li>
+                <li>
+                    <a href="#cmp" class="nav-link text-green">
                         Components
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link text-white">
+                    <a href="#rec" class="nav-link text-green">
                         Reconciliation <div class="cond-2 text-danger"> !</div>
                     </a>
                 </li>
                 <!-- <li>
-                    <a href="#" class="nav-link text-white">
+                    <a href="#" class="nav-link text-green">
                         Debugger
                     </a>
                 </li> -->
                 <li>
-                    <a href="#" class="nav-link text-white">
+                    <a href="#dbg" class="nav-link text-green">
                         Common Mistakes & Debugging
                     </a>
                 </li>
@@ -87,13 +97,12 @@
         </div>
         <div class="col-10">
             <div class="container justify-content-center align-items-center ">
-                <!-- <div
-                    class="position-relative my-5 p-5 text-center text-muted bg-body border border-success-subtle rounded-5"> -->
                 <div class="position-relative my-3 p-5 text-center text-muted bg-body">
-                    <h1 class="text-body-emphasis display-1 lead">Documentation
+                    <h1 class="overview text-body-emphasis display-1 lead">Documentation
                     </h1>
                     <div class="text-start">
-
+                        
+                        <a id="gen-idea"></a>
                         <div class="display-5 py-4 heading">General Ideas</div>
                         <p>
                             Stateful Markup is a framework that is designed to integrate and supercharge existing large
@@ -187,6 +196,7 @@
                                 href="https://en.wikipedia.org/wiki/Multiple_buffering#External_links">here</a>.
                         </p>
 
+                        <a id="subs"></a>
                         <div class="display-5 py-4 heading">What are Subscribers?</div>
                         <p>
                             Subscribers are the main measure with which we can enforce the opt-in nature of the
@@ -266,6 +276,7 @@
                         </div>
                         The framework creates transforms from the subscribers.
 
+                        <a id="trans"></a>
                         <div class="display-5 py-4 heading">What are Transforms?</div>
                         <p>
                             A transform is comprised of three crucial parts: the element, the mirror, and the shard.
@@ -326,6 +337,7 @@
                             shards are nulled.
                         </p>
 
+                        <a id="ep"></a>
                         <div class="display-5 py-4 heading">What is Value Injection?</div>
                         <p>
                             Value Injection is the method through which the framework truly maintains reactivity. The
@@ -428,7 +440,7 @@
                         </p>
 
                         <!-- An example gif / text would be nice. -->
-
+                        <a id="brendering"></a>
                         <div class="display-5 py-4 heading">Batched Rendering</div>
                         <p>
                             Batched rendering is a method to increase performance and reduce the load on user devices.
@@ -515,6 +527,7 @@
 
                         <!-- Improve Content 
 1. Opt in using _sm-->
+                            <a id="ortho"></a>
                         <div class="display-5 py-4 heading">Orthogonally Crafted for Seamless Integration</div>
                         <p>
                         <p>
@@ -591,6 +604,7 @@
 
                         </p>
 
+                        <a id="cmp"></a>
                         <div class="display-5 py-4 heading">Components</div>
                         <p>
                             When designing Stateful Markup, a valuable feature that could be neatly implemented was
@@ -661,6 +675,7 @@
                             </div>
                         </div>
                         <!-- TODO: Write functions like publish and external dom manip, and give examples. -->
+                        <a id="rec"></a>
                         <div class="display-5 py-4 heading">Reconciliation Phase <strong class="text-danger fs-1">
                                 !</strong>
                         </div>
@@ -756,7 +771,7 @@
                             class="highlight-inline fw-bold">Whats great is that since Stateful Markup is opt-in for any
                             DOM tree, you can still use it anywhere else on the page.</div>
 
-                        <!-- FIXME: Remove extra logs from debugger -->
+                        <a id="dbg"></a>
                         <div class="display-5 py-4 heading">Common Mistakes & Debugging</div>
                         Stateful Markup also offers a debugging script to help highlight potential problematic code
                         patterns.
