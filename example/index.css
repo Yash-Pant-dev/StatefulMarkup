@@ -28,28 +28,32 @@
 }
 
 .highl.ight-block {
-    color: var(--primary);
+    color: var(--primary) !important;
 }
 
 .highlight-inline {
     /* display: inline-flex; */
     display: inline;
-    color: var(--primary);
+    color: var(--primary) !important;
 }
 
 .cond-1 {
-    color: var(--secondary)
+    color: var(--secondary) !important;
 }
 
 .cond-2 {
     display: inline;
-    color: var(--secondary)
+    color: var(--secondary) !important;
 }
 
 .list-group-item-action:nth-child(odd) {
     color:var(--green);
 }
 
-.fitcontent {
-    width: fit-content !important;
+/* For components box due to large amounts of text. */
+@media (max-width: 768px) {
+    .fitcontent {
+        width: fit-content !important;
+        padding: 50px 10px !important;
+    }
 }
