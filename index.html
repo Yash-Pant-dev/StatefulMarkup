@@ -26,7 +26,6 @@
 <link rel="stylesheet" href="example/index.css">
 <script>
     function linkToClip() {
-        //TODO: Create link
         navigator.clipboard.writeText(
             `
         <script src="https://cdn.jsdelivr.net/gh/Yash-Pant-dev/StatefulMarkup@master/dist/StatefulMarkupClient.js"><\/script>
@@ -60,7 +59,7 @@
                     <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
                         <button type="button" class="btn btn-dark btn-lg px-4 gap-3" onclick="linkToClip()">⊱ Get CDN
                             Link</button>
-                        <button type="button" class="btn btn-dark btn-lg px-4">⊱ Github</button>
+                        <button type="button" class="btn btn-dark btn-lg px-4" href="https://github.com/Yash-Pant-dev/StatefulMarkup">⊱ Github</button>
                         <!-- <button type="button" class="btn btn-success btn-lg px-4" >⊱ Docs</button> -->
                         <a class="btn btn-success btn-lg px-4" href="./example/docs-new.html">
                             Docs
@@ -77,8 +76,8 @@
         <!-- Variable Injection -->
         <div class="container justify-content-center align-items-center">
             <div class="position-relative my-5 p-5 text-center text-muted bg-body border border-dashed rounded-5">
-                <button type="button" class="position-absolute top-0 end-0 p-3 m-3 bg-opacity-10 rounded-pill"
-                    aria-label="Read More">Read More</button>
+                <!-- <button type="button" class=" p-3 m-3 bg-opacity-10 rounded-pill"
+                    aria-label="Read More">Read More</button> -->
                 <h1 class="text-body-emphasis display-2 fw-bolder">Reactivity with <div class="_sm highlight-inline">
                         @Variable!</div>
                 </h1>
@@ -106,8 +105,8 @@
         <!-- Conditionals -->
         <div class="container justify-content-center align-items-center">
             <div class="position-relative my-5 p-5 text-center text-muted bg-body border border-dashed rounded-5">
-                <button type="button" class="position-absolute top-0 end-0 p-3 m-3 bg-opacity-10 rounded-pill"
-                    aria-label="Read More">Read More</button>
+                <!-- <button type="button" class="position-absolute top-0 end-0 p-3 m-3 bg-opacity-10 rounded-pill"
+                    aria-label="Read More">Read More</button> -->
                 <h1 class="text-body-emphasis display-3 fw-bolder">
                     <div class="highlight-inline">Conditionals</div>
                     and <div class="highlight-inline">Components!</div>
@@ -162,8 +161,8 @@
         <!-- Loops & Fetching -->
         <div class="container justify-content-center align-items-center">
             <div class="position-relative my-5 p-5 text-center text-muted bg-body border border-dashed rounded-5">
-                <button type="button" class="position-absolute top-0 end-0 p-3 m-3 bg-opacity-10 rounded-pill"
-                    aria-label="Read More">Read More</button>
+                <!-- <button type="button" class="position-absolute top-0 end-0 p-3 m-3 bg-opacity-10 rounded-pill"
+                    aria-label="Read More">Read More</button> -->
                 <h1 class="text-body-emphasis display-3 fw-bolder">
                     <div class="highlight-inline">Loops</div>
                 </h1>
@@ -232,9 +231,9 @@
         </div>
 
         <div class="container justify-content-center align-items-center">
-            <div class="position-relative my-5 p-5 text-center text-muted bg-body border border-dashed rounded-5">
-                <button type="button" class="position-absolute top-0 end-0 p-3 m-3 bg-opacity-10 rounded-pill"
-                    aria-label="Read More">Read More</button>
+            <div class="position-relative my-5 p-5 text-center text-muted bg-body border border-dashed rounded-5 fitcontent">
+                <!-- <button type="button" class="position-absolute top-0 end-0 p-3 m-3 bg-opacity-10 rounded-pill"
+                    aria-label="Read More">Read More</button> -->
                 <h1 class="text-body-emphasis display-3 fw-bolder">
                     <div class="highlight-inline">Components!</div>
                 </h1>
@@ -244,9 +243,9 @@
                     events and listeners at one single place, for easier management.
                 </blockquote>
                 <div class="d-grid gap-1 d-sm-flex justify-content-sm-center pt-1 fs-3 row">
-                    <div class="col col-7 lead">
+                    <div class="col col-sm-12 col-md-7 lead px-sm-5">
                         <ul class="list-group justify-content-start">
-                            <li class="list-group-item text-start">
+                            <li class="list-group-item text-start w-auto">
                                 <div class="fs-4 fw-bold">
                                     <div class="highlight-inline fw-bold">const FooterComponent = {<br></div>
                                     <div class="cond-2"> name: 'footer'

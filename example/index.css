@@ -49,3 +49,7 @@
 .list-group-item-action:nth-child(odd) {
     color:var(--green);
 }
+
+.fitcontent {
+    width: fit-content !important;
+}
