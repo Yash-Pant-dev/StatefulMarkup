@@ -50,21 +50,24 @@
                     MARKUP
                 </h1>
                 <div class="col-lg-6 mx-auto">
-                    <p class="h2 mb-4 pt-5 pb-2">
-                        Extend your Markup to support <u class="highlight-inline">Persisting State, Conditional
+                    <p class="h2 mb-0 pt-5 pb-0">
+                        Extend your Markup to support <u class="highlight-inline">Reactivity, State, Conditional
                             Rendering & Loops, Components,
                             Batched rendering</u> and more!
                     </p>
+                    <div class="text-muted lead mt-2 mb-4 pb-2">just drop in two lines!</div>
                     <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
                         <button type="button" class="btn btn-dark btn-lg px-4 gap-3" onclick="linkToClip()">⊱ Get CDN
                             Link</button>
                         <a type="button" class="btn btn-dark btn-lg px-4"
                             href="https://github.com/Yash-Pant-dev/StatefulMarkup">⊱ Github</button>
-                        <!-- <button type="button" class="btn btn-success btn-lg px-4" >⊱ Docs</button> -->
-                        <a class="btn btn-success btn-lg px-4" href="./example/docs-new.html">
-                            ⊱ Documentation
-                        </a>
+                            <!-- <button type="button" class="btn btn-success btn-lg px-4" >⊱ Docs</button> -->
+                            <a class="btn btn-success btn-lg px-4" href="./example/docs-new.html">
+                                ⊱ Documentation
+                            </a>
                     </div>
+                    <br><br>
+                    <br><br>
                 </div>
             </div>
         </div>
@@ -91,7 +94,7 @@
                 <div class="pt-2 pb-2 fs-4 lead">A single line of JS is all it needs - </div>
 
                 <div class="d-grid gap-1 d-sm-flex justify-content-sm-center pt-1 fs-3 ">
-                    SM.update("@Variable",
+                    SM.update("Variable",
                     <div class="mb-3">
                         <input type="text" class="form-control variableInput _sm" id="" placeholder=""
                             aria-describedby=" suffix-demo" value="@Variable" />
@@ -316,7 +319,7 @@
                     </div>
                     <div>
                         <h3 class="fs-2 text-body-emphasis display-5 highlight-inline">Batched Rendering</h3>
-                        <p>Maintain 60 fps by updating in batches, improving performance. Set a tailored framerate for
+                        <p>Maintain 60+ fps by updating in batches, improving performance. Set a tailored framerate for
                             your users device.</p>
                         <!-- <a href="./example/docs-new.html" class="btn btn-success">
                             Read More
@@ -331,10 +334,9 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="fs-2 text-body-emphasis display-5  highlight-inline">Easily Extensible Design</h3>
-                        <p>The framework is built to support new constructs, plugins to support your use-case without
-                            needing to fight against the code.
-                            The API tries to be as clear and direct as possible.
+                        <h3 class="fs-2 text-body-emphasis display-5  highlight-inline">Awesome Debug Support</h3>
+                        <p>
+                            Use the debug client to automatically check against common mistakes, and code smells.
                         </p>
                         <!-- <a href="./example/docs-new.html" class="btn btn-success">
                             Read More
@@ -349,9 +351,9 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 class="fs-2 text-body-emphasis display-5 highlight-inline">Pruned DOM updates</h3>
-                        <p>Stateless Markup only remakes those DOM trees that get affected by any given set of updates,
-                            so there are no wasted CPU cyles.</p>
+                        <h3 class="fs-2 text-body-emphasis display-5 highlight-inline">Opt-In nature</h3>
+                        <p>Stateless updates works by subscribing to DOM trees, so nothing gets affected without your
+                            explicit input. Built to seamlessly join existing toolchains & libraries.</p>
                         <!-- <a href="./example/docs-new.html" class="btn btn-success">
                             Read More
                         </a> -->
@@ -372,19 +374,19 @@
                     </div>
                 </h1>
 
-                <blockquote class="blockquote pt-5 fs-4">That's a good question. And the answer really is that
+                <blockquote class="blockquote pt-5 fs-4 lead">That's a good question. And the answer really is that
                     I'm not trying to compete with React!
-                    <div class="highlight-inline fw-bold">Stateful Markup aims to solve different problems.</div>
+                    <div class="highlight-inline fw-bold">Stateful Markup aims to solve DIFFERENT problems.</div>
                     <br>
                     <br>
-                    Let me elaborate on a case where Stateful Markup
-                    might be a great option for you-
+                    Stateful Markup is built to join new and existing vanilla js projects and provide some much needed
+                    conveniences afforded by the bigger frameworks, without needing to really change up your code.
                     <br>
-                    Say you have an existing vanilla js webpage, that has <div class="highlight-inline fw-bold">over
-                        time assumed complex interactions, has a
-                        bunch of moving parts, and because of lack of certain abstractions become too unwieldy</div> to
-                    handle. It
-                    has relies on complex behaviours, expensive updates, and a convoluted structure.
+                    <br>
+                    Say you have an existing vanilla js webpage, that has <div class="highlight-inline fw-bold"> complex
+                        interactions and become too unwieldy</div> to
+                    handle. Maybe the performance is suffering or you need to <div class="highlight-inline fw-bold">
+                        write a lot of js to simulate reactivity</div> all the time.
                     <br>
                     <br>
                     <div class="highlight-inline fw-bold">Stateful Markup is really great here, as you can break down
@@ -396,17 +398,13 @@
                         big time-sink.</div>
                     <br>
                     <br>
-                    In contrast, here you just have to drop two lines of JS scripts, and the setup is done! Stateful
+                    In contrast, here you <div class="highlight-inline fw-bold">just drop two lines of JS scripts</div>, and the setup is done! Stateful
                     Markup <div class="highlight-inline fw-bold">provides the most used features, while still having
-                        an extremely small size(15kb!) and fast development cycles due to no compilation needed.</div>
+                        an extremely small size(~10kb) and fast development cycles due to no compilation needed.</div>
                     And due to the orthogonal, opt-in nature of SM, you can infuse it where you need it, and keep the
                     rest of
                     your codebase completely untouched!
-                    <br>
-                    <br>
-                    Another reason to use Stateful Markup is when you are creating a new project with simple
-                    functionality. You don't have to take on all the baggage the comes with React, most of which will
-                    not be used at all.
+                    
                 </blockquote>
 
             </div>
