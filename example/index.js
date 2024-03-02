@@ -2,7 +2,6 @@
 const SM = new StatefulMarkupClient('example.js')
 StatefulMarkupConfig.DEBUG_LOGS = true
 
-
 /* Reactivity with @Variable Demo */
 variableUpdateFn = (e) => {
     console.log('EBB')

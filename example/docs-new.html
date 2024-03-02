@@ -528,82 +528,21 @@
                         <!-- Improve Content 
 1. Opt in using _sm-->
                             <a id="ortho"></a>
-                        <div class="display-5 py-4 heading">Orthogonally Crafted for Seamless Integration</div>
-                        <p>
-                        <p>
-                            Stateful Markup embraces the power of orthogonal design, seamlessly integrating with your
-                            current processes and codebase. Meticulously crafted to enhance functionality without
-                            imposing changes, our framework ensures effortless coexistence with your existing libraries,
-                            tools, and frameworks.
-                        </p>
-
-                        <p>
-                            Benefit from high orthogonality as Stateful Markup empowers you to preserve the integrity of
-                            your code. Whether you manipulate the DOM tree through external JS or utilize custom event
-                            listeners, our framework provides smooth integration with convenient one-line wrappers and
-                            the addEventListener function.
-                        </p>
-
-                        <p>
-                            To prevent misidentification, variables and constructs bear the '@/@_' prefix, while the _sm
-                            class and every function in the StatefulMarkup.js file feature the _SM_ prefix. This
-                            thoughtful naming strategy guarantees a non-intrusive coexistence with your current
-                            libraries.
-                        </p>
-
-                        <p>
-                            In essence, Stateful Markup makes minimal assumptions about your DOM tree or JS code,
-                            requiring only nominal changes. Regardless of project complexity, our framework ensures a
-                            harmonious integration process, minimizing disruptions to your established development
-                            practices.
-                        </p>
-
-
-
-                        <!-- Introduction -->
-
-                        <!-- Benefits List -->
-                        <!-- FIXME: Add it to key benefits at the end. -->
-                        <h2>Key Benefits</h2>
-                        <ul>
-                            <li><b>Effortless Integration:</b> Stateful Markup effortlessly integrates into diverse
-                                projects, minimizing the need for extensive modifications to your existing codebase.
-                                Enjoy a smooth adoption process and accelerated development workflow.</li>
-
-                            <li><b>Code Preservation:</b> Preserve your current coding styles and practices. Whether
-                                you've been manually manipulating the DOM tree or implementing custom event listeners,
-                                Stateful Markup respects and preserves these functionalities with minimal intervention.
-                            </li>
-
-                            <li><b>Enhanced Collaboration:</b> Foster collaboration among developers with varying coding
-                                preferences and styles. The framework's non-intrusive integration allows team members to
-                                contribute without major disruptions to the existing codebase.</li>
-
-                            <li><b>Minimized Learning Curve:</b> Seamlessly incorporate Stateful Markup without a steep
-                                learning curve. The framework's minimal assumptions about the existing DOM tree and
-                                JavaScript code ensure a gentle transition, reducing the time needed for adaptation.
-                            </li>
-
-                            <li><b>Adaptable to Diverse Projects:</b> Stateful Markup's orthogonality extends its
-                                applicability to a wide range of projects. Whether you're working on a small-scale
-                                website or a complex web application, the framework's flexibility accommodates different
-                                project sizes and requirements.</li>
-
-                            <li><b>Reduced Maintenance Overhead:</b> By preserving the integrity of your codebase,
-                                Stateful Markup diminishes potential maintenance overhead associated with extensive
-                                modifications. Adopt the framework confidently, knowing that your existing code remains
-                                intact and functional.</li>
-                        </ul>
-
-                        <!-- Conclusion -->
-                        <p>
-                            In summary, the orthogonal design philosophy embedded in Stateful Markup simplifies
-                            integration, enhances collaboration, reduces the learning curve, and ensures adaptability
-                            across diverse projects, all while preserving the integrity of your existing codebase.
-                        </p>
-
-                        </p>
-
+                        <div class="display-5 py-4 heading">Orthogonally Crafted for Easy Integration</div>
+                        
+                        One of the USPs of Stateful Markup is its orthogonal nature. 
+                        <br/>
+                        What does that mean?
+                        <br/>
+                        This means that I've tried to make it as uninterfering and unassuming with respect to existing libraries and toolchains you may have.
+                        <br/>
+                        The library is entirely opt-in for any subtree of the document dom tree, and is completely invisible to any unsubscribed element. 
+                        <br/>
+                        Where some changes are needed, like the event listeners, the API tries to be as general as possible.
+                        So is the case with the reconciliation phase, so that you can tailor it as you want.
+                        <br/>
+                        <br/>
+                        The benefits are obvious - Adoption is very easy.
                         <a id="cmp"></a>
                         <div class="display-5 py-4 heading">Components</div>
                         <p>
@@ -794,6 +733,9 @@
                         <br>
                         <img class="img border-3 rounded py-3" src="assets/dbg_result.png">
                         <br>
+
+                        <div class="display-5 py-4 heading">Separation of Concerns</div>
+                        While working on this, one topic that I wasnt so sure about was whether the fact that we have variables in markup is poor separation of concerns. Taking the case of say React, people probably though
                     </div>
                 </div>
             </div>
